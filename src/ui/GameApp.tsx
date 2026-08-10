@@ -6,7 +6,7 @@ import { getClub } from "../data/clubs";
 import { crestUrl } from "../data/divisions";
 import type { CareerState, EventOutcome, Formation, GameEvent, Philosophy, TacticalApproach } from "../domain/game";
 
-const STORAGE_KEY = "convertite-en-dt:carrera:v4";
+const STORAGE_KEY = "convertite-en-dt:carrera:v5";
 const philosophies: Philosophy[] = ["Ofensivo", "Defensivo", "Equilibrado", "Motivador", "Formador", "Pragmático"];
 const approaches: TacticalApproach[] = ["Ofensivo", "Equilibrado", "Defensivo"];
 const formations: Formation[] = ["4-3-3", "4-2-3-1", "4-4-2", "3-5-2", "5-3-2"];
@@ -43,7 +43,7 @@ export function GameApp() {
     if (!saved) return;
     try {
       const parsed = JSON.parse(saved) as CareerState;
-      if (parsed.version !== 4) { localStorage.removeItem(STORAGE_KEY); return; }
+      if (parsed.version !== 5) { localStorage.removeItem(STORAGE_KEY); return; }
       // Restores an external browser snapshot after hydration.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setState(parsed);
@@ -151,6 +151,7 @@ export function GameApp() {
           </div>
           <aside className="pulse-card"><div className="section-number">PULSO DEL CLUB</div><Meter label="HINCHAS" value={state.season.fanApproval} /><Meter label="VESTUARIO" value={state.season.morale} /><Meter label="DIRIGENCIA" value={state.season.boardTrust} /><Meter label="PRESIÓN" value={state.season.pressure} /><div className="scorers-mini"><div className="section-number">GOLEADORES</div>{[...state.season.scorers].sort((a,b) => b.goals-a.goals).slice(0,4).map((player, index) => <div key={player.name}><span>{index + 1}. {player.name}<small>{player.position}</small></span><strong>{player.goals}</strong></div>)}</div></aside>
         </div>
+        <section className="cups-card"><div className="standings-title"><div><span>CAMPAÑA EN COPAS</span><strong>OTROS FRENTES</strong></div><small>{state.season.cups.length} {state.season.cups.length === 1 ? "COMPETENCIA" : "COMPETENCIAS"}</small></div><div className="cup-grid">{state.season.cups.map((cup) => <article key={cup.name} className={cup.status}><div><span>{cup.name}</span><strong>{cup.stage}</strong></div><em>{cup.status === "active" ? "EN COMPETENCIA" : cup.status === "champion" ? "TÍTULO" : "ELIMINADO"}</em><dl><div><dt>PJ</dt><dd>{cup.played}</dd></div><div><dt>G-E-P</dt><dd>{cup.won}-{cup.drawn}-{cup.lost}</dd></div><div><dt>GF-GC</dt><dd>{cup.goalsFor}-{cup.goalsAgainst}</dd></div></dl></article>)}</div></section>
         <section className="standings-card"><div className="standings-title"><div><span>TABLA COMPLETA</span><strong>{club.division}</strong></div><small>ACTUALIZADA EN FECHA {state.season.week}</small></div><div className="standings-scroll"><table><thead><tr><th>POS</th><th>EQUIPO</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>DG</th><th>PTS</th></tr></thead><tbody>{state.season.standings.map((row, index) => <tr key={row.id} className={row.id === club.id ? "is-user" : ""}><td>{index + 1}</td><td><Crest crestId={row.crestId} name={row.name} small /><strong>{row.name}</strong></td><td>{row.played}</td><td>{row.won}</td><td>{row.drawn}</td><td>{row.lost}</td><td>{row.goalsFor - row.goalsAgainst > 0 ? "+" : ""}{row.goalsFor - row.goalsAgainst}</td><td><strong>{row.points}</strong></td></tr>)}</tbody></table></div></section>
       </section>}
 
@@ -169,6 +170,8 @@ export function GameApp() {
         <div className="summary-kicker">TEMPORADA {last.year} · INFORME FINAL</div><div className="summary-result"><div><p>{last.club}</p><h2>{last.outcome}</h2><span>{last.division}{last.promotedTo ? ` → ${last.promotedTo}` : ""}</span></div><strong>{last.position}°</strong></div>
         <div className="record-line"><div><span>PJ</span><strong>{last.played}</strong></div><div><span>PG</span><strong>{last.won}</strong></div><div><span>PE</span><strong>{last.drawn}</strong></div><div><span>PP</span><strong>{last.lost}</strong></div></div>
         <div className={`objective-badge ${last.objectiveMet ? "met" : "missed"}`}><span>OBJETIVO DE LA DIRIGENCIA</span><strong>{last.objectiveMet ? "CUMPLIDO" : "INCUMPLIDO"}</strong></div>
+        {last.contractTerminated && <div className="termination-notice"><span>DECISIÓN DE LA DIRIGENCIA</span><strong>CONTRATO RESCINDIDO</strong><p>El club dio por terminado tu vínculo. La próxima temporada sólo podrás aceptar una oferta de otra institución.</p></div>}
+        <section className="summary-cups"><div className="section-number">CAMPAÑA EN COPAS</div>{last.cups.map((cup) => <div key={cup.name}><span><strong>{cup.name}</strong><small>{cup.played} PJ · {cup.won} G · {cup.drawn} E · {cup.lost} P</small></span><b className={cup.status}>{cup.stage}</b></div>)}</section>
         <section className="season-scorers"><div className="section-number">GOLEADORES DEL EQUIPO</div>{last.topScorers.map((player, index) => <div key={player.name}><span><b>{index + 1}</b>{player.name}<small>{player.position}</small></span><strong>{player.goals} <small>GOLES</small></strong></div>)}</section>
         <blockquote>“{last.story}”</blockquote><div className="career-gain"><span>REPUTACIÓN</span><strong>{state.manager.reputation}</strong><small>{state.manager.reputation < 100 ? "DT DESCONOCIDO" : state.manager.reputation < 250 ? "DT DEL ASCENSO" : state.manager.reputation < 550 ? "DT RESPETADO" : "DT DE PRIMER NIVEL"}</small></div>
         <button className="primary" onClick={() => setScreen("offers")}>ESCUCHAR OFERTAS <span>→</span></button>

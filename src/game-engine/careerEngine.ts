@@ -2,7 +2,7 @@ import { CLUBS, getClub } from "../data/clubs.ts";
 import { DIVISION_TEAMS, DIVISION_TIER, NEXT_DIVISION } from "../data/divisions.ts";
 import { EVENTS } from "../data/events.ts";
 import { FIRST_NAMES, LAST_NAMES, SQUAD_NAMES, TRANSFER_PROFILES } from "../data/players.ts";
-import type { CareerState, ClubOffer, Effects, EventOption, EventOutcome, Formation, GameEvent, Manager, MatchResult, MeaningfulMoment, PlayerScorer, Season, SeasonRecord, StandingRow, TacticalApproach } from "../domain/game.ts";
+import type { CareerState, Club, ClubOffer, CupRun, Effects, EventOption, EventOutcome, Formation, GameEvent, Manager, MatchResult, MeaningfulMoment, PlayerScorer, Season, SeasonRecord, StandingRow, TacticalApproach } from "../domain/game.ts";
 import { nextRandom, randomInt } from "./rng.ts";
 
 const clamp = (value: number, min = 0, max = 100) => Math.max(min, Math.min(max, value));
@@ -10,7 +10,7 @@ const money = (value: number) => `US$${Math.round(value / 1000)}K`;
 
 export function createCareer(manager: Omit<Manager, "reputation" | "leadership" | "respect">, seed = Date.now() >>> 0): CareerState {
   const philosophyLeadership = manager.philosophy === "Motivador" ? 68 : manager.philosophy === "Pragmático" ? 62 : 56;
-  return { version: 4, seed, rngState: seed || 1978, manager: { ...manager, reputation: 28, leadership: philosophyLeadership, respect: 42 }, history: [], trophies: 0, promotions: 0, clubDivisions: {}, eventHistory: {}, offerHistory: [] };
+  return { version: 5, seed, rngState: seed || 1978, manager: { ...manager, reputation: 28, leadership: philosophyLeadership, respect: 42 }, history: [], trophies: 0, promotions: 0, clubDivisions: {}, eventHistory: {}, offerHistory: [] };
 }
 
 const seededScore = (text: string, seed: number) => [...text].reduce((sum, char) => sum + char.charCodeAt(0) * 17, seed) % 997;
@@ -58,13 +58,28 @@ function emptyRow(team: { id: string; name: string; shortName: string; crestId: 
 }
 
 function initialScorers(clubId: string): PlayerScorer[] {
-  const offset = seededScore(clubId, 0) % (SQUAD_NAMES.length - 5);
+  const offset = seededScore(clubId, 0) % (SQUAD_NAMES.length - 7);
   return [
     { name: SQUAD_NAMES[offset], position: "DEL", goals: 0, weight: 5 },
     { name: SQUAD_NAMES[offset + 1], position: "EXT", goals: 0, weight: 3 },
     { name: SQUAD_NAMES[offset + 2], position: "MCO", goals: 0, weight: 2 },
-    { name: SQUAD_NAMES[offset + 3], position: "DFC", goals: 0, weight: 1 },
+    { name: SQUAD_NAMES[offset + 3], position: "MC", goals: 0, weight: 1 },
+    { name: SQUAD_NAMES[offset + 4], position: "DEL", goals: 0, weight: 2 },
+    { name: SQUAD_NAMES[offset + 5], position: "EXT", goals: 0, weight: 1 },
+    { name: SQUAD_NAMES[offset + 6], position: "VOL", goals: 0, weight: 1 },
   ];
+}
+
+function initialCups(state: CareerState, club: Club): CupRun[] {
+  const cup = (name: CupRun["name"], stage: string, nextWeek: number): CupRun => ({ name, stage, status: "active", played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, roundIndex: 0, nextWeek });
+  const cups = [cup("Copa Argentina", "32avos de final", 5)];
+  if (club.division !== "Liga Profesional") return cups;
+  const last = state.history.at(-1); const priorPosition = last?.club === club.name && last.division === "Liga Profesional" ? last.position : undefined;
+  const libertadores = priorPosition ? priorPosition <= 4 : club.squadStrength >= 86;
+  const sudamericana = priorPosition ? priorPosition >= 5 && priorPosition <= 10 : !libertadores && club.squadStrength >= 80;
+  if (libertadores) cups.push(cup("Copa Libertadores", "Fase de grupos", 6));
+  else if (sudamericana) cups.push(cup("Copa Sudamericana", "Fase de grupos", 6));
+  return cups;
 }
 
 function transferCandidates(clubId: string, budget: number, year: number, seed: number) {
@@ -99,7 +114,7 @@ export function startSeason(state: CareerState, clubId: string): CareerState {
     performanceModifier: 0, eventCount: 0, seenEvents: [], moments: [], standings,
     scorers: initialScorers(clubId), transferCandidates: transferCandidates(clubId, club.budget, year, state.rngState), preseasonDone: false, squadStrengthModifier: 0, pendingTransfers: [],
     squadReport: { attack, midfield, defense, strengths: [`El ${lines[0].label} es la línea más confiable`, attack >= 82 ? "Hay desequilibrio individual en los últimos metros" : midfield >= 76 ? "El equipo puede sostener la posesión" : "El grupo compite bien en duelos"], weaknesses: [`El ${lines[2].label} ofrece menos garantías`, defense < 65 ? "Falta profundidad defensiva" : attack < 65 ? "Cuesta transformar dominio en goles" : "El recambio es irregular"] },
-    tacticalModifier: 0, tacticsConfirmed: false,
+    tacticalModifier: 0, tacticsConfirmed: false, cups: initialCups(state, club),
   };
   const offerHistory = [...state.offerHistory, { year, clubIds: displayedOffers.map((offer) => offer.club.id) }].slice(-4);
   return { ...state, clubId, season, offerHistory };
@@ -155,12 +170,48 @@ function addResult(row: StandingRow, result: MatchResult, gf: number, ga: number
 
 function scoreGoals(season: Season, goals: number, rng: number): number {
   for (let goal = 0; goal < goals; goal++) {
-    const total = season.scorers.reduce((sum, scorer) => sum + scorer.weight, 0);
+    const eligible = season.scorers.filter((scorer) => !/^(ARQ|DFC|LAT|LI|LD|DEF)$/i.test(scorer.position) && scorer.goals < 15);
+    if (!eligible.length) break;
+    const total = eligible.reduce((sum, scorer) => sum + scorer.weight, 0);
     let roll; [roll, rng] = nextRandom(rng); let cursor = 0;
-    const scorer = season.scorers.find((player) => (cursor += player.weight / total) >= roll) ?? season.scorers[0];
+    const scorer = eligible.find((player) => (cursor += player.weight / total) >= roll) ?? eligible[0];
     scorer.goals++;
   }
   return rng;
+}
+
+const CUP_STAGES: Record<CupRun["name"], string[]> = {
+  "Copa Argentina": ["32avos de final", "16avos de final", "Octavos de final", "Cuartos de final", "Semifinal", "Final"],
+  "Copa Libertadores": ["Fase de grupos", "Octavos de final", "Cuartos de final", "Semifinal", "Final"],
+  "Copa Sudamericana": ["Fase de grupos", "Octavos de final", "Cuartos de final", "Semifinal", "Final"],
+};
+
+function simulateCups(input: CareerState): CareerState {
+  const state = structuredClone(input); const season = state.season!; let rng = state.rngState;
+  for (const cup of season.cups.filter((item) => item.status === "active" && item.nextWeek <= season.week)) {
+    const stages = CUP_STAGES[cup.name];
+    if (cup.roundIndex === 0 && cup.name !== "Copa Argentina") {
+      let roll; [roll, rng] = nextRandom(rng);
+      const club = getClub(season.clubId); const qualifyChance = clamp(.42 + (club.squadStrength + season.squadStrengthModifier - 70) / 110 + season.tacticalModifier, .28, .82);
+      const qualified = roll < qualifyChance; let draws; [draws, rng] = randomInt(rng, 1, 2);
+      cup.played += 6; cup.won += qualified ? 3 : 1; cup.drawn += draws; cup.lost += 6 - (qualified ? 3 : 1) - draws;
+      let gf; [gf, rng] = randomInt(rng, qualified ? 7 : 3, qualified ? 12 : 8); let ga; [ga, rng] = randomInt(rng, qualified ? 3 : 7, qualified ? 8 : 13);
+      cup.goalsFor += gf; cup.goalsAgainst += ga; rng = scoreGoals(season, gf, rng);
+      if (qualified) { cup.roundIndex = 1; cup.stage = stages[1]; cup.nextWeek += 4; }
+      else { cup.status = "eliminated"; }
+      continue;
+    }
+    const club = getClub(season.clubId); const international = cup.name !== "Copa Argentina";
+    const winChance = clamp(.44 + (club.squadStrength + season.squadStrengthModifier - (international ? 80 : 65)) / 140 + season.tacticalModifier, .27, .68);
+    let roll; [roll, rng] = nextRandom(rng); let advanced = roll < winChance; let result: MatchResult = advanced ? "W" : "L";
+    if (!advanced && roll < winChance + .18) { result = "D"; let shootout; [shootout, rng] = nextRandom(rng); advanced = shootout < .5; }
+    let gf; [gf, rng] = randomInt(rng, result === "W" ? 1 : 0, result === "W" ? 3 : result === "D" ? 2 : 1); let ga; [ga, rng] = randomInt(rng, result === "L" ? Math.max(1, gf + 1) : 0, result === "L" ? 3 : result === "D" ? gf : Math.max(0, gf - 1)); if (result === "D") ga = gf;
+    cup.played++; cup.goalsFor += gf; cup.goalsAgainst += ga; cup.won += result === "W" ? 1 : 0; cup.drawn += result === "D" ? 1 : 0; cup.lost += result === "L" ? 1 : 0; rng = scoreGoals(season, gf, rng);
+    if (!advanced) cup.status = "eliminated";
+    else if (cup.roundIndex === stages.length - 1) { cup.status = "champion"; cup.stage = "CAMPEÓN"; }
+    else { cup.roundIndex++; cup.stage = stages[cup.roundIndex]; cup.nextWeek += 4; }
+  }
+  state.rngState = rng; return state;
 }
 
 function simulateMatch(state: CareerState): CareerState {
@@ -193,7 +244,7 @@ function simulateMatch(state: CareerState): CareerState {
   season.position = season.standings.findIndex((row) => row.id === season.clubId) + 1;
   season.boardTrust = clamp(season.boardTrust + (result === "W" ? 2 : result === "L" ? -2 : 0));
   season.performanceModifier *= .96;
-  return { ...state, rngState: rng, season };
+  return simulateCups({ ...state, rngState: rng, season });
 }
 
 function materializeEvent(event: GameEvent, season: Season, rng: number): [GameEvent, number] {
@@ -255,7 +306,7 @@ function resolvePendingTransfer(input: CareerState): { state: CareerState; outco
   const pending = input.season!.pendingTransfers.find((item) => !item.resolved && item.triggerWeek <= input.season!.week);
   if (!pending) return undefined;
   let state = structuredClone(input); let roll; [roll, state.rngState] = nextRandom(state.rngState);
-  const successCutoff = .48 - pending.risk / 4; const neutralCutoff = successCutoff + .32;
+  const successCutoff = .48 - pending.risk / 4 + pending.fitBonus; const neutralCutoff = Math.min(.9, successCutoff + .32);
   let outcome: EventOutcome;
   if (roll < successCutoff) outcome = { id: `${pending.id}_impact`, title: `${pending.playerName} se ganó un lugar`, description: `Después de ${state.season!.week} fechas, el refuerzo se adaptó y ya mejora al equipo.`, baseProbability: successCutoff, tone: "positive", effects: { strength: pending.strength, morale: 5, performance: .025 } };
   else if (roll < neutralCutoff) outcome = { id: `${pending.id}_slow`, title: `${pending.playerName} todavía está en deuda`, description: "Mostró algunas condiciones, pero su adaptación está llevando más tiempo del esperado.", baseProbability: .32, tone: "neutral", effects: { strength: Math.max(1, pending.strength - 2) } };
@@ -271,8 +322,11 @@ export function resolveEvent(input: CareerState, event: GameEvent, chosenOption:
   if (event.category === "transfer" && chosenOption.playerName) {
     const candidate = state.season!.transferCandidates.find((player) => player.name === chosenOption.playerName)!;
     let delay; [delay, state.rngState] = randomInt(state.rngState, 4, 7);
-    state.season!.scorers.push({ name: candidate.name, position: candidate.position, goals: 0, weight: 3 });
-    state.season!.pendingTransfers.push({ id: candidate.id, playerName: candidate.name, triggerWeek: state.season!.week + delay, strength: candidate.strength, risk: candidate.risk, resolved: false });
+    const defensiveNeed = state.season!.squadReport.defense < Math.min(state.season!.squadReport.attack, state.season!.squadReport.midfield);
+    const defensiveSigning = /^(DFC|ARQ|LAT|LI|LD|DEF)$/i.test(candidate.position);
+    const fitBonus = defensiveNeed && defensiveSigning ? .16 : 0;
+    if (!defensiveSigning) state.season!.scorers.push({ name: candidate.name, position: candidate.position, goals: 0, weight: 3 });
+    state.season!.pendingTransfers.push({ id: candidate.id, playerName: candidate.name, triggerWeek: state.season!.week + delay, strength: candidate.strength, risk: candidate.risk, fitBonus, resolved: false });
     const outcome: EventOutcome = { id: `${candidate.id}_signed`, title: `${candidate.name} ya es refuerzo`, description: `Firmó su contrato y se sumó al plantel. Su evaluación llegará después de varios partidos, no hoy.`, baseProbability: 1, tone: "neutral", effects: {} };
     return { state, outcome };
   }
@@ -283,7 +337,8 @@ export function resolveEvent(input: CareerState, event: GameEvent, chosenOption:
   const chosen = adjusted.find((item) => (cursor += item.p / total) >= roll) ?? adjusted.at(-1)!;
   state = applyEffects(state, chosen.effects);
   if (chosenOption.playerName && !state.season!.scorers.some((player) => player.name === chosenOption.playerName)) {
-    state.season!.scorers.push({ name: chosenOption.playerName, position: state.season!.transferCandidates.find((player) => player.name === chosenOption.playerName)?.position ?? "REF", goals: 0, weight: 3 });
+    const position = state.season!.transferCandidates.find((player) => player.name === chosenOption.playerName)?.position ?? "REF";
+    if (!/^(ARQ|DFC|LAT|LI|LD|DEF)$/i.test(position)) state.season!.scorers.push({ name: chosenOption.playerName, position, goals: 0, weight: 3 });
   }
   state.season!.moments.push(`${event.title}: ${chosen.title}.`);
   return { state, outcome: chosen };
@@ -306,12 +361,13 @@ export function finishSeason(input: CareerState): CareerState {
   const reputationDelta = Math.round((objectiveTarget(club.objective) - season.position) * 5 + (promoted ? 55 : 0) + (champion ? 45 : 0));
   const topScorers = [...season.scorers].sort((a, b) => b.goals - a.goals).slice(0, 4);
   const record: SeasonRecord = {
-    year: season.year, club: club.name, division: season.division, position: season.position, outcome, objectiveMet, topScorers, promotedTo,
+    year: season.year, club: club.name, division: season.division, position: season.position, outcome, objectiveMet, topScorers, promotedTo, cups: season.cups, contractTerminated: !objectiveMet,
     played: season.played, won: season.won, drawn: season.drawn, lost: season.lost,
     story: season.moments.length ? `Una temporada marcada por ${season.moments.slice(0, 2).join(" ")} El equipo terminó ${season.position}°${promotedTo ? ` y ascendió a ${promotedTo}` : ""}.` : `Una campaña sin grandes crisis: ${club.name} terminó ${season.position}°${promotedTo ? ` y ascendió a ${promotedTo}` : ""}.`,
   };
   state.manager.reputation = clamp(state.manager.reputation + reputationDelta, 0, 1000); state.history.push(record);
   if (promotedTo) state.clubDivisions[club.id] = promotedTo;
-  state.promotions += promoted ? 1 : 0; state.trophies += champion ? 1 : 0; delete state.season;
+  state.promotions += promoted ? 1 : 0; state.trophies += (champion ? 1 : 0) + season.cups.filter((cup) => cup.status === "champion").length; delete state.season;
+  if (!objectiveMet) delete state.clubId;
   return state;
 }

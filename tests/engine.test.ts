@@ -39,7 +39,7 @@ test("a season begins with a four-player transfer decision", () => {
 test("transfer names vary between seasons", () => {
   const career = createCareer(manager, 991);
   const first = startSeason(career, "ituzaingo").season!.transferCandidates.map((player) => player.name);
-  career.history.push({ year: 2026, club: "Ituzaingó", division: "Primera C", position: 8, outcome: "Objetivo cumplido", played: 34, won: 12, drawn: 10, lost: 12, story: "", objectiveMet: true, topScorers: [] });
+  career.history.push({ year: 2026, club: "Ituzaingó", division: "Primera C", position: 8, outcome: "Objetivo cumplido", played: 34, won: 12, drawn: 10, lost: 12, story: "", objectiveMet: true, topScorers: [], cups: [], contractTerminated: false });
   const second = startSeason(career, "ituzaingo").season!.transferCandidates.map((player) => player.name);
   assert.notDeepEqual(first, second);
 });
@@ -104,7 +104,7 @@ test("career events cannot repeat during four consecutive seasons", () => {
 
 test("offers rotate away from the previous market", () => {
   let state = createCareer(manager, 8008); state.clubId = "ituzaingo";
-  state.history.push({ year: 2026, club: "Ituzaingó", division: "Primera C", position: 4, outcome: "Gran campaña", played: 34, won: 17, drawn: 8, lost: 9, story: "", objectiveMet: true, topScorers: [] });
+  state.history.push({ year: 2026, club: "Ituzaingó", division: "Primera C", position: 4, outcome: "Gran campaña", played: 34, won: 17, drawn: 8, lost: 9, story: "", objectiveMet: true, topScorers: [], cups: [], contractTerminated: false });
   const first = generateOffers(state);
   state = startSeason(state, first[0].club.id); state.season!.position = 5; state = finishSeason(state);
   const second = generateOffers(state);
@@ -126,10 +126,41 @@ test("formation and approach create a hidden performance modifier", () => {
   assert.ok((aligned.season?.tacticalModifier ?? 0) > (mismatched.season?.tacticalModifier ?? 0));
 });
 
+test("qualified teams play domestic and international cups", () => {
+  const river = startSeason(createCareer(manager, 410), "river");
+  assert.deepEqual(river.season?.cups.map((cup) => cup.name), ["Copa Argentina", "Copa Libertadores"]);
+  const lowerDivision = startSeason(createCareer(manager, 410), "ituzaingo");
+  assert.deepEqual(lowerDivision.season?.cups.map((cup) => cup.name), ["Copa Argentina"]);
+  const finished = autoplay(411);
+  assert.ok(finished.history[0].cups.every((cup) => cup.played > 0 && cup.status !== "active"));
+});
+
+test("scorers are attacking players and never exceed fifteen goals", () => {
+  const state = autoplay(2027); const scorers = state.history[0].topScorers;
+  assert.ok(scorers.every((player) => player.goals <= 15));
+  assert.ok(scorers.every((player) => !/^(ARQ|DFC|LAT|LI|LD|DEF)$/i.test(player.position)));
+});
+
+test("missing the objective terminates the contract", () => {
+  let state = startSeason(createCareer(manager, 77), "ituzaingo"); state.season!.position = 18; state = finishSeason(state);
+  assert.equal(state.history[0].contractTerminated, true);
+  assert.equal(state.clubId, undefined);
+  assert.ok(generateOffers(state).every((offer) => offer.kind === "new"));
+});
+
+test("a defensive signing gets a fit bonus when defense is the weakness", () => {
+  let state = startSeason(createCareer(manager, 123), "ituzaingo");
+  state.season!.squadReport = { ...state.season!.squadReport, attack: 70, midfield: 70, defense: 40 };
+  const market = advanceUntilNextMeaningfulMoment(state); assert.equal(market.type, "event"); if (market.type !== "event") return;
+  const defender = market.event.options.find((option) => /· (DFC|ARQ|LAT) ·/.test(option.text)); assert.ok(defender);
+  state = resolveEvent(market.state, market.event, defender!).state;
+  assert.equal(state.season!.pendingTransfers[0].fitBonus, .16);
+});
+
 test("successful campaign includes renewal and upward offers", () => {
   const state = createCareer(manager, 789);
   state.clubId = "ituzaingo";
-  state.history.push({ year: 2026, club: "Ituzaingó", division: "Primera C", position: 3, outcome: "Gran campaña", played: 34, won: 18, drawn: 8, lost: 8, story: "Buena campaña", objectiveMet: true, topScorers: [] });
+  state.history.push({ year: 2026, club: "Ituzaingó", division: "Primera C", position: 3, outcome: "Gran campaña", played: 34, won: 18, drawn: 8, lost: 8, story: "Buena campaña", objectiveMet: true, topScorers: [], cups: [], contractTerminated: false });
   const offers = generateOffers(state);
   assert.equal(offers.length, 3);
   assert.ok(offers.some((offer) => offer.kind === "renewal" && offer.club.id === "ituzaingo"));

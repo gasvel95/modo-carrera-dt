@@ -71,11 +71,24 @@ export type StandingRow = {
 
 export type PlayerScorer = { name: string; position: string; goals: number; weight: number };
 export type TransferCandidate = { id: string; name: string; age: number; position: string; profile: string; cost: number; strength: number; risk: number };
-export type PendingTransfer = { id: string; playerName: string; triggerWeek: number; strength: number; risk: number; resolved: boolean };
+export type PendingTransfer = { id: string; playerName: string; triggerWeek: number; strength: number; risk: number; fitBonus: number; resolved: boolean };
 export type ClubOffer = { club: Club; kind: "renewal" | "new"; reason: string };
 export type TacticalApproach = "Ofensivo" | "Equilibrado" | "Defensivo";
 export type Formation = "4-3-3" | "4-2-3-1" | "4-4-2" | "3-5-2" | "5-3-2";
 export type SquadReport = { attack: number; midfield: number; defense: number; strengths: string[]; weaknesses: string[] };
+export type CupRun = {
+  name: "Copa Argentina" | "Copa Libertadores" | "Copa Sudamericana";
+  stage: string;
+  status: "active" | "eliminated" | "champion";
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  roundIndex: number;
+  nextWeek: number;
+};
 
 export type GameEvent = {
   id: string;
@@ -126,6 +139,7 @@ export type Season = {
   formation?: Formation;
   tacticalModifier: number;
   tacticsConfirmed: boolean;
+  cups: CupRun[];
 };
 
 export type SeasonRecord = {
@@ -142,10 +156,12 @@ export type SeasonRecord = {
   objectiveMet: boolean;
   topScorers: PlayerScorer[];
   promotedTo?: string;
+  cups: CupRun[];
+  contractTerminated: boolean;
 };
 
 export type CareerState = {
-  version: 4;
+  version: 5;
   seed: number;
   rngState: number;
   manager: Manager;
