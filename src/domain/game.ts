@@ -68,6 +68,7 @@ export type StandingRow = {
 
 export type PlayerScorer = { name: string; position: string; goals: number; weight: number };
 export type TransferCandidate = { id: string; name: string; age: number; position: string; profile: string; cost: number; strength: number; risk: number };
+export type PendingTransfer = { id: string; playerName: string; triggerWeek: number; strength: number; risk: number; resolved: boolean };
 export type ClubOffer = { club: Club; kind: "renewal" | "new"; reason: string };
 
 export type GameEvent = {
@@ -86,6 +87,7 @@ export type GameEvent = {
 export type Season = {
   year: number;
   clubId: string;
+  division: string;
   week: number;
   totalWeeks: number;
   position: number;
@@ -112,6 +114,7 @@ export type Season = {
   transferCandidates: TransferCandidate[];
   preseasonDone: boolean;
   squadStrengthModifier: number;
+  pendingTransfers: PendingTransfer[];
 };
 
 export type SeasonRecord = {
@@ -127,10 +130,11 @@ export type SeasonRecord = {
   story: string;
   objectiveMet: boolean;
   topScorers: PlayerScorer[];
+  promotedTo?: string;
 };
 
 export type CareerState = {
-  version: 2;
+  version: 3;
   seed: number;
   rngState: number;
   manager: Manager;
@@ -139,8 +143,10 @@ export type CareerState = {
   history: SeasonRecord[];
   trophies: number;
   promotions: number;
+  clubDivisions: Record<string, string>;
 };
 
 export type MeaningfulMoment =
   | { type: "event"; event: GameEvent; state: CareerState }
+  | { type: "delayed_outcome"; outcome: EventOutcome; state: CareerState }
   | { type: "season_finished"; state: CareerState };

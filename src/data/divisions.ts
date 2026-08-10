@@ -8,6 +8,13 @@ export const DIVISION_TEAMS: Record<string, DivisionTeam[]> = {
     ["newells", "Newell's Old Boys", "NOB", 3212, 76], ["talleres", "Talleres", "TAL", 3210, 84], ["belgrano", "Belgrano", "BEL", 3203, 76], ["defensa", "Defensa y Justicia", "DYJ", 36839, 75],
     ["banfield", "Banfield", "BAN", 3219, 72], ["godoy", "Godoy Cruz", "GOD", 6074, 78],
   ].map(([id,name,shortName,crestId,strength]) => ({ id, name, shortName, crestId, strength })) as DivisionTeam[],
+  "Primera B": [
+    ["acassuso", "Acassuso", "ACA", 112491, 54], ["argentino_q", "Argentino de Quilmes", "ARQ", 194523, 55], ["armenio", "Deportivo Armenio", "ARM", 93105, 57], ["brown_a", "Brown de Adrogué", "BRO", 107201, 58],
+    ["comunicaciones", "Comunicaciones", "COM", 112501, 55], ["dock_sud", "Dock Sud", "DOC", 270405, 54], ["excursionistas", "Excursionistas", "EXC", 65672, 56], ["flandria", "Flandria", "FLA", 112505, 57],
+    ["laferrere", "Deportivo Laferrere", "LAF", 228062, 54], ["merlo", "Deportivo Merlo", "MER", 36840, 55], ["sacachispas", "Sacachispas", "SAC", 184969, 52], ["san_martin_b", "San Martín de Burzaco", "SMB", 269780, 53],
+    ["talleres_re", "Talleres (RE)", "TRE", 201162, 59], ["uai", "UAI Urquiza", "UAI", 112507, 56], ["villa_dalmine", "Villa Dálmine", "VDM", 112509, 56], ["villa_sc", "Villa San Carlos", "VSC", 107199, 55],
+    ["los_andes", "Los Andes", "AND", 112497, 60], ["argentino_m", "Argentino de Merlo", "AME", 199311, 57],
+  ].map(([id,name,shortName,crestId,strength]) => ({ id, name, shortName, crestId, strength })) as DivisionTeam[],
   "Primera Nacional": [
     ["atlanta", "Atlanta", "ATL", 53799, 62], ["chacarita", "Chacarita Juniors", "CHA", 3214, 64], ["quilmes", "Quilmes", "QUI", 4936, 67], ["ferro", "Ferro", "FER", 36841, 64],
     ["all_boys", "All Boys", "ALL", 36834, 60], ["almirante", "Almirante Brown", "ALM", 43740, 58], ["chicago", "Nueva Chicago", "CHI", 3200, 65], ["san_martin_t", "San Martín (T)", "SMT", 23950, 70],
@@ -30,5 +37,15 @@ export const DIVISION_TEAMS: Record<string, DivisionTeam[]> = {
     ["cambaceres", "Cambaceres", "CAM", 248679, 45], ["victoriano", "Victoriano Arenas", "VIC", 266830, 43],
   ].map(([id,name,shortName,crestId,strength]) => ({ id, name, shortName, crestId, strength })) as DivisionTeam[],
 };
+
+export const NEXT_DIVISION: Record<string, string | undefined> = {
+  "Primera C": "Primera B",
+  "Primera B": "Primera Nacional",
+  "Federal A": "Primera Nacional",
+  "Primera Nacional": "Liga Profesional",
+  "Liga Profesional": undefined,
+};
+
+export const DIVISION_TIER: Record<string, number> = { "Liga Profesional": 1, "Primera Nacional": 2, "Primera B": 3, "Federal A": 4, "Primera C": 5 };
 
 export const crestUrl = (crestId: number) => `/crests/${crestId}.png`;

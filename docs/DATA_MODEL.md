@@ -2,7 +2,7 @@
 
 ## CareerState
 
-Semilla, estado RNG, manager, club actual, temporada activa, historial, títulos y ascensos. Es la unidad persistida.
+Semilla, estado RNG, manager, club actual, temporada activa, historial, títulos, ascensos y división actual de los clubes promovidos. Es la unidad persistida.
 
 ## Manager
 

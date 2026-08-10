@@ -12,7 +12,7 @@ function autoplay(seed: number) {
     const moment = advanceUntilNextMeaningfulMoment(state);
     state = moment.state;
     if (moment.type === "event") state = resolveEvent(state, moment.event, moment.event.options[guard % moment.event.options.length]).state;
-    else return finishSeason(state);
+    else if (moment.type === "season_finished") return finishSeason(state);
   }
   throw new Error("Season did not finish");
 }
@@ -33,6 +33,41 @@ test("a season begins with a four-player transfer decision", () => {
     assert.equal(moment.event.options.length, 4);
     assert.equal(new Set(moment.event.options.map((item) => item.text)).size, 4);
   }
+});
+
+test("transfer names vary between seasons", () => {
+  const career = createCareer(manager, 991);
+  const first = startSeason(career, "ituzaingo").season!.transferCandidates.map((player) => player.name);
+  career.history.push({ year: 2026, club: "Ituzaingó", division: "Primera C", position: 8, outcome: "Objetivo cumplido", played: 34, won: 12, drawn: 10, lost: 12, story: "", objectiveMet: true, topScorers: [] });
+  const second = startSeason(career, "ituzaingo").season!.transferCandidates.map((player) => player.name);
+  assert.notDeepEqual(first, second);
+});
+
+test("a transfer is evaluated only after several matches", () => {
+  let state = startSeason(createCareer(manager, 5150), "ituzaingo");
+  const market = advanceUntilNextMeaningfulMoment(state);
+  assert.equal(market.type, "event");
+  if (market.type !== "event") return;
+  const signing = resolveEvent(market.state, market.event, market.event.options[0]);
+  state = signing.state;
+  assert.equal(signing.outcome.tone, "neutral");
+  assert.equal(state.season!.squadStrengthModifier, 0);
+  const evaluation = advanceUntilNextMeaningfulMoment(state);
+  assert.equal(evaluation.type, "delayed_outcome");
+  assert.ok((evaluation.state.season?.week ?? 0) >= 4);
+});
+
+test("a promoted club starts the next season in the higher division", () => {
+  let state = startSeason(createCareer(manager, 1810), "ituzaingo");
+  state.season!.position = 1;
+  state = finishSeason(state);
+  assert.equal(state.clubDivisions.ituzaingo, "Primera B");
+  const renewal = generateOffers(state).find((offer) => offer.kind === "renewal");
+  assert.equal(renewal?.club.division, "Primera B");
+  const nextSeason = startSeason(state, "ituzaingo");
+  assert.equal(nextSeason.season?.division, "Primera B");
+  assert.equal(nextSeason.season?.standings.length, 18);
+  assert.ok(nextSeason.season?.standings.some((row) => row.id === "ituzaingo"));
 });
 
 test("standings contain all teams and keep valid row totals", () => {

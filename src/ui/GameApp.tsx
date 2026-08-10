@@ -6,7 +6,7 @@ import { getClub } from "../data/clubs";
 import { crestUrl } from "../data/divisions";
 import type { CareerState, EventOutcome, GameEvent, Philosophy } from "../domain/game";
 
-const STORAGE_KEY = "convertite-en-dt:carrera:v2";
+const STORAGE_KEY = "convertite-en-dt:carrera:v3";
 const philosophies: Philosophy[] = ["Ofensivo", "Defensivo", "Equilibrado", "Motivador", "Formador", "Pragmático"];
 type Screen = "intro" | "offers" | "season" | "event" | "outcome" | "summary" | "history";
 
@@ -39,7 +39,7 @@ export function GameApp() {
     if (!saved) return;
     try {
       const parsed = JSON.parse(saved) as CareerState;
-      if (parsed.version !== 2) { localStorage.removeItem(STORAGE_KEY); return; }
+      if (parsed.version !== 3) { localStorage.removeItem(STORAGE_KEY); return; }
       // Restores an external browser snapshot after hydration.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setState(parsed);
@@ -48,7 +48,7 @@ export function GameApp() {
   }, []);
 
   useEffect(() => { if (state) localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }, [state]);
-  const club = state?.season ? getClub(state.season.clubId) : state?.clubId ? getClub(state.clubId) : null;
+  const club = state?.season ? { ...getClub(state.season.clubId), division: state.season.division } : state?.clubId ? getClub(state.clubId) : null;
   const offers = useMemo(() => state ? generateOffers(state) : [], [state]);
 
   const begin = () => {
@@ -65,6 +65,7 @@ export function GameApp() {
       const moment = advanceUntilNextMeaningfulMoment(state);
       setState(moment.state);
       if (moment.type === "event") { setActiveEvent(moment.event); setScreen("event"); }
+      else if (moment.type === "delayed_outcome") { setOutcome(moment.outcome); setScreen("outcome"); }
       else { const ended = finishSeason(moment.state); setState(ended); setScreen("summary"); }
       setBusy(false);
     }, 650);
@@ -147,7 +148,7 @@ export function GameApp() {
       </section>}
 
       {screen === "summary" && state && last && <section className="summary-view">
-        <div className="summary-kicker">TEMPORADA {last.year} · INFORME FINAL</div><div className="summary-result"><div><p>{last.club}</p><h2>{last.outcome}</h2><span>{last.division}</span></div><strong>{last.position}°</strong></div>
+        <div className="summary-kicker">TEMPORADA {last.year} · INFORME FINAL</div><div className="summary-result"><div><p>{last.club}</p><h2>{last.outcome}</h2><span>{last.division}{last.promotedTo ? ` → ${last.promotedTo}` : ""}</span></div><strong>{last.position}°</strong></div>
         <div className="record-line"><div><span>PJ</span><strong>{last.played}</strong></div><div><span>PG</span><strong>{last.won}</strong></div><div><span>PE</span><strong>{last.drawn}</strong></div><div><span>PP</span><strong>{last.lost}</strong></div></div>
         <div className={`objective-badge ${last.objectiveMet ? "met" : "missed"}`}><span>OBJETIVO DE LA DIRIGENCIA</span><strong>{last.objectiveMet ? "CUMPLIDO" : "INCUMPLIDO"}</strong></div>
         <section className="season-scorers"><div className="section-number">GOLEADORES DEL EQUIPO</div>{last.topScorers.map((player, index) => <div key={player.name}><span><b>{index + 1}</b>{player.name}<small>{player.position}</small></span><strong>{player.goals} <small>GOLES</small></strong></div>)}</section>
