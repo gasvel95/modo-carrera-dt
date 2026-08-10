@@ -4,6 +4,7 @@ import test from "node:test";
 import { advanceUntilNextMeaningfulMoment, canMoveToEurope, confirmSeasonTactics, createCareer, endCareer, finishSeason, generateOffers, resolveEvent, startSeason } from "../src/game-engine/careerEngine.ts";
 import { EVENTS } from "../src/data/events.ts";
 import { getClub } from "../src/data/clubs.ts";
+import { FIRST_NAMES, LAST_NAMES } from "../src/data/players.ts";
 
 const manager = { name: "Test DT", age: 38, nationality: "Argentina", supportedClub: "Ninguno", philosophy: "Equilibrado" as const };
 
@@ -92,9 +93,43 @@ test("a transfer is evaluated only after several matches", () => {
   state = signing.state;
   assert.equal(signing.outcome.tone, "neutral");
   assert.equal(state.season!.squadStrengthModifier, 0);
-  const evaluation = advanceUntilNextMeaningfulMoment(state);
+  let evaluation = advanceUntilNextMeaningfulMoment(state); let guard = 0;
+  while (evaluation.type === "event" && guard++ < 8) {
+    state = resolveEvent(evaluation.state, evaluation.event, evaluation.event.options[0]).state;
+    evaluation = advanceUntilNextMeaningfulMoment(state);
+  }
   assert.equal(evaluation.type, "delayed_outcome");
   assert.ok((evaluation.state.season?.week ?? 0) >= 4);
+});
+
+test("player names use broad first-name and surname pools", () => {
+  assert.ok(FIRST_NAMES.length >= 50);
+  assert.ok(LAST_NAMES.length >= 55);
+  const first = startSeason(createCareer(manager, 710), "ituzaingo").season!.scorers.map((player) => player.name);
+  const secondCareer = createCareer(manager, 710); secondCareer.history.push({ year: 2026, club: "Ituzaingó", division: "Primera C", position: 8, outcome: "Objetivo cumplido", played: 34, won: 12, drawn: 10, lost: 12, story: "", objectiveMet: true, topScorers: [], cups: [], contractTerminated: false, terminationRisk: .1, boardDecision: "Continuidad" });
+  const second = startSeason(secondCareer, "ituzaingo").season!.scorers.map((player) => player.name);
+  assert.notDeepEqual(first, second);
+});
+
+test("decisive match events resolve an actual match result", () => {
+  let state = startSeason(createCareer(manager, 2027), "ituzaingo");
+  const market = advanceUntilNextMeaningfulMoment(state); assert.equal(market.type, "event"); if (market.type !== "event") return;
+  state = resolveEvent(market.state, market.event, market.event.options[0]).state;
+  let found = false;
+  for (let guard = 0; guard < 12 && state.season; guard++) {
+    const moment = advanceUntilNextMeaningfulMoment(state); state = moment.state;
+    if (moment.type === "event" && moment.event.category === "partido_trascendental") {
+      const playedBefore = state.season!.played; const resolution = resolveEvent(state, moment.event, moment.event.options[0]);
+      assert.equal(resolution.state.season!.played, playedBefore + 1);
+      assert.match(resolution.outcome.description, /\d+-\d+|avanzó|eliminado|campeón/i); found = true; break;
+    }
+    if (moment.type === "event") state = resolveEvent(state, moment.event, moment.event.options[0]).state;
+  }
+  assert.equal(found, true);
+});
+
+test("the catalog includes fictional bizarre Argentine-football incidents", () => {
+  for (const id of ["locker_room_weapon", "player_fights_fan", "former_player_criticism", "wrong_kits", "locked_dressing_room", "mascot_red_card"]) assert.ok(EVENTS.some((event) => event.id === id));
 });
 
 test("a promoted club starts the next season in the higher division", () => {

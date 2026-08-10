@@ -51,6 +51,7 @@ export type EventOutcome = {
   baseProbability: number;
   tone: "positive" | "negative" | "neutral";
   effects: Effects;
+  matchResult?: MatchResult;
 };
 
 export type EventOption = { id: string; text: string; approach: "bold" | "calm" | "safe"; outcomes: EventOutcome[]; playerName?: string };
@@ -102,6 +103,7 @@ export type GameEvent = {
   condition: "any" | "crisis" | "good_form" | "low_morale";
   weight: number;
   options: EventOption[];
+  matchTarget?: { type: "league" | "cup"; label: string; cupName?: CupRun["name"] };
 };
 
 export type Season = {

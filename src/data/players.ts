@@ -1,10 +1,18 @@
-export const SQUAD_NAMES = [
-  "Tomás Ferreyra", "Lautaro Acosta", "Bruno Sosa", "Franco Quiroga", "Matías Roldán", "Nicolás Vera", "Agustín Ledesma", "Ramiro Paz",
-  "Facundo Luna", "Joaquín Benítez", "Santiago Correa", "Iván Cardozo", "Ezequiel Toledo", "Lucas Villalba", "Bautista Romero", "Thiago Navarro",
+export const FIRST_NAMES = [
+  "Agustín", "Alan", "Alejo", "Alexis", "Ángel", "Axel", "Bautista", "Benjamín", "Bruno", "Cristian", "Damián", "Darío",
+  "Emanuel", "Emiliano", "Enzo", "Ezequiel", "Facundo", "Federico", "Felipe", "Franco", "Gastón", "Gonzalo", "Guido", "Ignacio",
+  "Iñaki", "Iván", "Joaquín", "Jonás", "Juan Cruz", "Julián", "Kevin", "Leandro", "Lisandro", "Lorenzo", "Lautaro", "Lucas",
+  "Luciano", "Manuel", "Marcos", "Mateo", "Matías", "Máximo", "Nahuel", "Nicolás", "Ramiro", "Renzo", "Rodrigo", "Santiago",
+  "Santino", "Simón", "Thiago", "Tiziano", "Tomás", "Valentín", "Vicente", "Walter",
 ];
 
-export const FIRST_NAMES = ["Alejo", "Bautista", "Bruno", "Damián", "Emanuel", "Facundo", "Franco", "Gastón", "Iñaki", "Joaquín", "Lautaro", "Lucas", "Mateo", "Nahuel", "Ramiro", "Santino", "Thiago", "Tomás", "Valentín", "Benjamín"];
-export const LAST_NAMES = ["Aguirre", "Benítez", "Cardozo", "Correa", "Ferreyra", "Ledesma", "Luna", "Medina", "Navarro", "Paz", "Pereyra", "Quiroga", "Ríos", "Roldán", "Romero", "Sosa", "Toledo", "Vera", "Villalba", "Zárate"];
+export const LAST_NAMES = [
+  "Acosta", "Aguirre", "Almada", "Almirón", "Álvarez", "Arce", "Barrios", "Benítez", "Blanco", "Bustos", "Cabrera", "Cardozo",
+  "Castro", "Chávez", "Coronel", "Correa", "Díaz", "Domínguez", "Escobar", "Fernández", "Ferreyra", "Flores", "Gaitán", "Giménez",
+  "Godoy", "González", "Herrera", "Juárez", "Ledesma", "Leiva", "López", "Luna", "Maidana", "Mansilla", "Medina", "Méndez",
+  "Molina", "Montiel", "Morales", "Navarro", "Ojeda", "Ortega", "Paz", "Pereyra", "Quiroga", "Ramírez", "Ríos", "Roldán",
+  "Romero", "Ruiz", "Salinas", "Sánchez", "Silva", "Sosa", "Suárez", "Toledo", "Valdez", "Vega", "Vera", "Villalba", "Zárate",
+];
 
 export const TRANSFER_PROFILES = [
   { id: "veterano_9", age: 34, position: "DEL", profile: "Goleador veterano · impacto inmediato", cost: 320000, strength: 5, risk: 0.25 },
