@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { generateOffers, advanceUntilNextMeaningfulMoment, confirmSeasonTactics, createCareer, finishSeason, resolveEvent, startSeason } from "../game-engine/careerEngine";
+import { generateOffers, advanceUntilNextMeaningfulMoment, canMoveToEurope, confirmSeasonTactics, createCareer, endCareer, finishSeason, resolveEvent, startSeason } from "../game-engine/careerEngine";
 import { getClub } from "../data/clubs";
 import { crestUrl } from "../data/divisions";
 import type { CareerState, EventOutcome, Formation, GameEvent, Philosophy, TacticalApproach } from "../domain/game";
 
-const STORAGE_KEY = "convertite-en-dt:carrera:v5";
+const STORAGE_KEY = "convertite-en-dt:carrera:v6";
 const philosophies: Philosophy[] = ["Ofensivo", "Defensivo", "Equilibrado", "Motivador", "Formador", "Pragmático"];
 const approaches: TacticalApproach[] = ["Ofensivo", "Equilibrado", "Defensivo"];
 const formations: Formation[] = ["4-3-3", "4-2-3-1", "4-4-2", "3-5-2", "5-3-2"];
-type Screen = "intro" | "offers" | "report" | "season" | "event" | "outcome" | "summary" | "history";
+type Screen = "intro" | "offers" | "report" | "season" | "event" | "outcome" | "summary" | "history" | "retire" | "ending";
 
 function Meter({ label, value }: { label: string; value: number }) {
   return <div className="meter"><div className="meter-head"><span>{label}</span><strong>{Math.round(value)}%</strong></div><div className="meter-track"><span style={{ width: `${value}%` }} /></div></div>;
@@ -43,11 +43,11 @@ export function GameApp() {
     if (!saved) return;
     try {
       const parsed = JSON.parse(saved) as CareerState;
-      if (parsed.version !== 5) { localStorage.removeItem(STORAGE_KEY); return; }
+      if (parsed.version !== 6) { localStorage.removeItem(STORAGE_KEY); return; }
       // Restores an external browser snapshot after hydration.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setState(parsed);
-      setScreen(parsed.season ? parsed.season.tacticsConfirmed ? "season" : "report" : "offers");
+      setScreen(parsed.ending ? "ending" : parsed.season ? parsed.season.tacticsConfirmed ? "season" : "report" : "offers");
     } catch { localStorage.removeItem(STORAGE_KEY); }
   }, []);
 
@@ -83,6 +83,8 @@ export function GameApp() {
     setState(result.state); setOutcome(result.outcome); setScreen("outcome");
   };
 
+  const completeCareer = (reason: "retirement" | "europe") => { if (!state) return; setState(endCareer(state, reason)); setScreen("ending"); };
+
   const restart = () => { localStorage.removeItem(STORAGE_KEY); setState(null); setActiveEvent(null); setOutcome(null); setScreen("intro"); };
   const last = state?.history.at(-1);
 
@@ -90,7 +92,7 @@ export function GameApp() {
     <main className="game-shell">
       <div className="paper-noise" aria-hidden="true" />
       <Brand />
-      {state && <nav className="career-nav" aria-label="Carrera"><button onClick={() => setScreen(state.season ? state.season.tacticsConfirmed ? "season" : "report" : "offers")}>PARTIDA</button><button onClick={() => setScreen("history")}>HISTORIAL <span>{state.history.length}</span></button></nav>}
+      {state && !state.ending && <nav className="career-nav" aria-label="Carrera"><button onClick={() => setScreen(state.season ? state.season.tacticsConfirmed ? "season" : "report" : "offers")}>PARTIDA</button><button onClick={() => setScreen("history")}>HISTORIAL <span>{state.history.length}</span></button><button onClick={() => setScreen("retire")}>RETIRO</button></nav>}
 
       {screen === "intro" && <section className="intro-grid">
         <div className="hero-copy">
@@ -113,6 +115,7 @@ export function GameApp() {
       {screen === "offers" && state && <section className="content-view">
         <div className="page-heading"><div><p className="eyebrow">EL TELÉFONO SONÓ</p><h2>{state.history.length ? <>TU PRÓXIMA<br />DECISIÓN.</> : <>TRES CLUBES.<br />UNA OPORTUNIDAD.</>}</h2></div><div className="manager-stamp"><span>DT</span><strong>{state.manager.name}</strong><small>REP. {state.manager.reputation}</small></div></div>
         <p className="lead">{state.history.length ? "El mercado leyó tu última campaña. El rendimiento abre puertas, pero el azar también mueve dirigentes." : "Nadie te conoce todavía. Estas instituciones están dispuestas a darte las llaves del vestuario."}</p>
+        {state.manager.age >= 60 && <button className="retirement-suggestion" onClick={() => setScreen("retire")}><span>EL CUERPO TÉCNICO TE LO PLANTEA</span><strong>Tenés {state.manager.age} años. Podés considerar el retiro.</strong><i>REVISAR DECISIÓN →</i></button>}
         <div className="offer-grid">{offers.map(({ club: item, kind, reason }, index) => <article className={`offer-card ${kind}`} key={item.id}>
           <div className="offer-top"><span>{kind === "renewal" ? "RENOVACIÓN" : `OFERTA 0${index + 1}`}</span><strong>{item.division}</strong></div>
           <div className="crest-wrap"><Crest crestId={item.crestId} name={item.name} /></div><h3>{item.name}</h3><p>{item.region}</p>
@@ -136,6 +139,7 @@ export function GameApp() {
       </section>}
 
       {screen === "season" && state?.season && club && <section className="season-view">
+        {state.manager.age >= 60 && <button className="retirement-suggestion" onClick={() => setScreen("retire")}><span>DECISIÓN PERSONAL DISPONIBLE</span><strong>A los {state.manager.age}, el retiro ya es una posibilidad natural.</strong><i>PENSAR EL RETIRO →</i></button>}
         <div className="scoreboard">
           <div className="scoreboard-club"><Crest crestId={club.crestId} name={club.name} /><div><p className="eyebrow">TEMPORADA {state.season.year}</p><h2>{club.name}</h2><p>{club.division} · Objetivo: {club.objective}</p></div></div>
           <div className="position"><span>POSICIÓN</span><strong>{state.season.position}°</strong><small>de {state.season.teams}</small></div>
@@ -149,7 +153,7 @@ export function GameApp() {
             <button className="primary simulate" onClick={advance} disabled={busy}>{busy ? <><i className="pulse" /> SIMULANDO TEMPORADA…</> : <>AVANZAR HASTA QUE IMPORTE <span>→</span></>}</button>
             <p className="microcopy center">El motor salta automáticamente los partidos sin decisiones clave.</p>
           </div>
-          <aside className="pulse-card"><div className="section-number">PULSO DEL CLUB</div><Meter label="HINCHAS" value={state.season.fanApproval} /><Meter label="VESTUARIO" value={state.season.morale} /><Meter label="DIRIGENCIA" value={state.season.boardTrust} /><Meter label="PRESIÓN" value={state.season.pressure} /><div className="scorers-mini"><div className="section-number">GOLEADORES</div>{[...state.season.scorers].sort((a,b) => b.goals-a.goals).slice(0,4).map((player, index) => <div key={player.name}><span>{index + 1}. {player.name}<small>{player.position}</small></span><strong>{player.goals}</strong></div>)}</div></aside>
+          <aside className="pulse-card"><div className="section-number">PULSO DEL CLUB</div><Meter label="HINCHAS" value={state.season.fanApproval} /><Meter label="VESTUARIO" value={state.season.morale} /><Meter label="DIRIGENCIA" value={state.season.boardTrust} /><Meter label="IDOLATRÍA" value={state.season.idolatry} /><Meter label="PRESIÓN" value={state.season.pressure} /><div className="scorers-mini"><div className="section-number">GOLEADORES</div>{[...state.season.scorers].sort((a,b) => b.goals-a.goals).slice(0,4).map((player, index) => <div key={player.name}><span>{index + 1}. {player.name}<small>{player.position}</small></span><strong>{player.goals}</strong></div>)}</div></aside>
         </div>
         <section className="cups-card"><div className="standings-title"><div><span>CAMPAÑA EN COPAS</span><strong>OTROS FRENTES</strong></div><small>{state.season.cups.length} {state.season.cups.length === 1 ? "COMPETENCIA" : "COMPETENCIAS"}</small></div><div className="cup-grid">{state.season.cups.map((cup) => <article key={cup.name} className={cup.status}><div><span>{cup.name}</span><strong>{cup.stage}</strong></div><em>{cup.status === "active" ? "EN COMPETENCIA" : cup.status === "champion" ? "TÍTULO" : "ELIMINADO"}</em><dl><div><dt>PJ</dt><dd>{cup.played}</dd></div><div><dt>G-E-P</dt><dd>{cup.won}-{cup.drawn}-{cup.lost}</dd></div><div><dt>GF-GC</dt><dd>{cup.goalsFor}-{cup.goalsAgainst}</dd></div></dl></article>)}</div></section>
         <section className="standings-card"><div className="standings-title"><div><span>TABLA COMPLETA</span><strong>{club.division}</strong></div><small>ACTUALIZADA EN FECHA {state.season.week}</small></div><div className="standings-scroll"><table><thead><tr><th>POS</th><th>EQUIPO</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>DG</th><th>PTS</th></tr></thead><tbody>{state.season.standings.map((row, index) => <tr key={row.id} className={row.id === club.id ? "is-user" : ""}><td>{index + 1}</td><td><Crest crestId={row.crestId} name={row.name} small /><strong>{row.name}</strong></td><td>{row.played}</td><td>{row.won}</td><td>{row.drawn}</td><td>{row.lost}</td><td>{row.goalsFor - row.goalsAgainst > 0 ? "+" : ""}{row.goalsFor - row.goalsAgainst}</td><td><strong>{row.points}</strong></td></tr>)}</tbody></table></div></section>
@@ -174,15 +178,19 @@ export function GameApp() {
         <section className="summary-cups"><div className="section-number">CAMPAÑA EN COPAS</div>{last.cups.map((cup) => <div key={cup.name}><span><strong>{cup.name}</strong><small>{cup.played} PJ · {cup.won} G · {cup.drawn} E · {cup.lost} P</small></span><b className={cup.status}>{cup.stage}</b></div>)}</section>
         <section className="season-scorers"><div className="section-number">GOLEADORES DEL EQUIPO</div>{last.topScorers.map((player, index) => <div key={player.name}><span><b>{index + 1}</b>{player.name}<small>{player.position}</small></span><strong>{player.goals} <small>GOLES</small></strong></div>)}</section>
         <blockquote>“{last.story}”</blockquote><div className="career-gain"><span>REPUTACIÓN</span><strong>{state.manager.reputation}</strong><small>{state.manager.reputation < 100 ? "DT DESCONOCIDO" : state.manager.reputation < 250 ? "DT DEL ASCENSO" : state.manager.reputation < 550 ? "DT RESPETADO" : "DT DE PRIMER NIVEL"}</small></div>
-        <button className="primary" onClick={() => setScreen("offers")}>ESCUCHAR OFERTAS <span>→</span></button>
+        {canMoveToEurope(state) ? <div className="europe-call"><span>LO GANASTE TODO EN ARGENTINA</span><h3>EUROPA LLAMA.</h3><p>Ya fuiste campeón local y levantaste la Libertadores. Una propuesta europea puede cerrar tu historia en lo más alto.</p><button className="primary" onClick={() => completeCareer("europe")}>DAR EL SALTO A EUROPA <span>→</span></button><button className="text-button" onClick={() => setScreen("offers")}>Continuar en Argentina</button></div> : <button className="primary" onClick={() => setScreen("offers")}>ESCUCHAR OFERTAS <span>→</span></button>}
       </section>}
 
       {screen === "history" && state && <section className="history-view">
         <div className="page-heading"><div><p className="eyebrow">ARCHIVO PERSONAL</p><h2>ESTA HISTORIA<br />ES TUYA.</h2></div><div className="career-total"><strong>{state.history.length}</strong><span>TEMPORADAS</span></div></div>
         {state.history.length ? <div className="history-list">{[...state.history].reverse().map((item) => <article key={`${item.year}-${item.club}`}><time>{item.year}</time><div><strong>{item.club}</strong><span>{item.division}</span></div><div className="history-outcome"><strong>{item.outcome}</strong><span>{item.position}°</span></div></article>)}</div> : <p className="empty">Todavía no hay temporadas para contar.</p>}
-        <div className="history-footer"><div><span>TÍTULOS</span><strong>{state.trophies}</strong></div><div><span>ASCENSOS</span><strong>{state.promotions}</strong></div><div><span>REPUTACIÓN</span><strong>{state.manager.reputation}</strong></div></div>
+        <div className="history-footer four"><div><span>TÍTULOS</span><strong>{state.trophies}</strong></div><div><span>ASCENSOS</span><strong>{state.promotions}</strong></div><div><span>REPUTACIÓN</span><strong>{state.manager.reputation}</strong></div><div><span>MÁX. IDOLATRÍA</span><strong>{Math.round(Math.max(0, ...Object.values(state.clubIdolatry)))}</strong></div></div>
         <button className="text-button" onClick={restart}>Empezar una carrera nueva</button>
       </section>}
+
+      {screen === "retire" && state && <section className="retire-view"><p className="eyebrow">DECISIÓN IRREVERSIBLE</p><h2>¿ES EL MOMENTO<br />DE PARAR?</h2><p>Podés retirarte voluntariamente en cualquier temporada. Tu historial, títulos, ascensos e idolatría quedarán como balance definitivo.</p><div className="retire-facts"><div><span>EDAD</span><strong>{state.manager.age}</strong></div><div><span>TEMPORADAS</span><strong>{state.history.length}</strong></div><div><span>TÍTULOS</span><strong>{state.trophies}</strong></div></div><button className="primary" onClick={() => completeCareer("retirement")}>CONFIRMAR RETIRO <span>→</span></button><button className="text-button" onClick={() => setScreen(state.season ? state.season.tacticsConfirmed ? "season" : "report" : "offers")}>Todavía no. Seguir dirigiendo.</button></section>}
+
+      {screen === "ending" && state?.ending && <section className={`ending-view ${state.ending.reason}`}><p className="eyebrow">FINAL DE CARRERA · {state.ending.year}</p><h1>{state.ending.title}</h1><p>{state.ending.description}</p><div className="ending-record"><div><span>EDAD FINAL</span><strong>{state.ending.age}</strong></div><div><span>TEMPORADAS</span><strong>{state.history.length}</strong></div><div><span>TÍTULOS</span><strong>{state.trophies}</strong></div><div><span>ASCENSOS</span><strong>{state.promotions}</strong></div></div><blockquote>“{state.manager.name}: una carrera que empezó sin nombre y terminó dejando una historia propia.”</blockquote><button className="primary light" onClick={restart}>EMPEZAR OTRA HISTORIA <span>→</span></button></section>}
       <footer><span>CONVERTITE EN DT · VERTICAL SLICE</span><span>LOS PARTIDOS OCURREN. VOS APARECÉS CUANDO IMPORTA.</span></footer>
     </main>
   );

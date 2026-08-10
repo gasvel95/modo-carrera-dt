@@ -10,7 +10,7 @@ const money = (value: number) => `US$${Math.round(value / 1000)}K`;
 
 export function createCareer(manager: Omit<Manager, "reputation" | "leadership" | "respect">, seed = Date.now() >>> 0): CareerState {
   const philosophyLeadership = manager.philosophy === "Motivador" ? 68 : manager.philosophy === "Pragmático" ? 62 : 56;
-  return { version: 5, seed, rngState: seed || 1978, manager: { ...manager, reputation: 28, leadership: philosophyLeadership, respect: 42 }, history: [], trophies: 0, promotions: 0, clubDivisions: {}, eventHistory: {}, offerHistory: [] };
+  return { version: 6, seed, rngState: seed || 1978, manager: { ...manager, reputation: 28, leadership: philosophyLeadership, respect: 42 }, history: [], trophies: 0, promotions: 0, clubDivisions: {}, eventHistory: {}, offerHistory: [], clubIdolatry: {}, clubSeasons: {}, achievements: { leagueTitles: 0, libertadoresTitles: 0 } };
 }
 
 const seededScore = (text: string, seed: number) => [...text].reduce((sum, char) => sum + char.charCodeAt(0) * 17, seed) % 997;
@@ -107,10 +107,11 @@ export function startSeason(state: CareerState, clubId: string): CareerState {
   const variance = (seededScore(`${clubId}-${year}-report`, state.seed) % 5) - 2;
   const attack = clamp(club.attack + variance); const midfield = clamp(club.midfield - Math.sign(variance)); const defense = clamp(club.defense - variance);
   const lines = [{ label: "ataque", value: attack }, { label: "mediocampo", value: midfield }, { label: "defensa", value: defense }].sort((a, b) => b.value - a.value);
+  const idolatry = state.clubIdolatry[clubId] ?? 0;
   const season: Season = {
     year, clubId, division: club.division, week: 0, totalWeeks: 34, position: 1, teams: standings.length,
     points: 0, played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, form: [],
-    morale: 58, harmony: 60, fanApproval: 52, boardTrust: 61, pressure: club.fanPressure / 3,
+    morale: 58, harmony: 60, fanApproval: 52, boardTrust: 61, pressure: clamp(club.fanPressure / 3 - idolatry / 5), idolatry,
     performanceModifier: 0, eventCount: 0, seenEvents: [], moments: [], standings,
     scorers: initialScorers(clubId), transferCandidates: transferCandidates(clubId, club.budget, year, state.rngState), preseasonDone: false, squadStrengthModifier: 0, pendingTransfers: [],
     squadReport: { attack, midfield, defense, strengths: [`El ${lines[0].label} es la línea más confiable`, attack >= 82 ? "Hay desequilibrio individual en los últimos metros" : midfield >= 76 ? "El equipo puede sostener la posesión" : "El grupo compite bien en duelos"], weaknesses: [`El ${lines[2].label} ofrece menos garantías`, defense < 65 ? "Falta profundidad defensiva" : attack < 65 ? "Cuesta transformar dominio en goles" : "El recambio es irregular"] },
@@ -170,7 +171,8 @@ function addResult(row: StandingRow, result: MatchResult, gf: number, ga: number
 
 function scoreGoals(season: Season, goals: number, rng: number): number {
   for (let goal = 0; goal < goals; goal++) {
-    const eligible = season.scorers.filter((scorer) => !/^(ARQ|DFC|LAT|LI|LD|DEF)$/i.test(scorer.position) && scorer.goals < 15);
+    let credited; [credited, rng] = nextRandom(rng); if (credited > .72) continue;
+    const eligible = season.scorers.filter((scorer) => !/^(ARQ|DFC|LAT|LI|LD|DEF)$/i.test(scorer.position) && scorer.goals < 12);
     if (!eligible.length) break;
     const total = eligible.reduce((sum, scorer) => sum + scorer.weight, 0);
     let roll; [roll, rng] = nextRandom(rng); let cursor = 0;
@@ -224,9 +226,9 @@ function simulateMatch(state: CareerState): CareerState {
   let ga; [ga, rng] = randomInt(rng, result === "L" ? Math.max(1, gf + 1) : 0, result === "L" ? 4 : result === "D" ? gf : Math.max(0, gf - 1));
   if (result === "D") ga = gf;
   season.week++; season.played++; season.goalsFor += gf; season.goalsAgainst += ga; season.form = [...season.form, result].slice(-5);
-  if (result === "W") { season.won++; season.points += 3; season.morale = clamp(season.morale + 3); season.fanApproval = clamp(season.fanApproval + 2); season.pressure = clamp(season.pressure - 2); }
+  if (result === "W") { season.won++; season.points += 3; season.morale = clamp(season.morale + 3); season.fanApproval = clamp(season.fanApproval + 2); season.pressure = clamp(season.pressure - 2 - season.idolatry / 35); }
   if (result === "D") { season.drawn++; season.points++; }
-  if (result === "L") { season.lost++; season.morale = clamp(season.morale - 4); season.fanApproval = clamp(season.fanApproval - 3); season.pressure = clamp(season.pressure + 4); }
+  if (result === "L") { season.lost++; season.morale = clamp(season.morale - 4); season.fanApproval = clamp(season.fanApproval - 3); season.pressure = clamp(season.pressure + 4 + season.idolatry / 18); }
   rng = scoreGoals(season, gf, rng);
   const userRow = season.standings.find((row) => row.id === season.clubId)!;
   addResult(userRow, result, gf, ga);
@@ -357,6 +359,7 @@ export function finishSeason(input: CareerState): CareerState {
   const club = { ...baseClub, division: season.division, tier: DIVISION_TIER[season.division] ?? baseClub.tier, objective: season.division === baseClub.division ? baseClub.objective : "Evitar el descenso" };
   const promotedTo = season.position <= 2 ? NEXT_DIVISION[season.division] : undefined;
   const promoted = Boolean(promotedTo); const champion = season.position === 1; const objectiveMet = season.position <= objectiveTarget(club.objective);
+  const libertadoresChampion = season.cups.some((cup) => cup.name === "Copa Libertadores" && cup.status === "champion");
   const outcome = champion ? "CAMPEÓN" : promoted ? "ASCENSO" : season.position <= 6 ? "Gran campaña" : season.position >= 16 ? "Permanencia sufrida" : objectiveMet ? "Objetivo cumplido" : "Objetivo incumplido";
   const reputationDelta = Math.round((objectiveTarget(club.objective) - season.position) * 5 + (promoted ? 55 : 0) + (champion ? 45 : 0));
   const topScorers = [...season.scorers].sort((a, b) => b.goals - a.goals).slice(0, 4);
@@ -365,9 +368,28 @@ export function finishSeason(input: CareerState): CareerState {
     played: season.played, won: season.won, drawn: season.drawn, lost: season.lost,
     story: season.moments.length ? `Una temporada marcada por ${season.moments.slice(0, 2).join(" ")} El equipo terminó ${season.position}°${promotedTo ? ` y ascendió a ${promotedTo}` : ""}.` : `Una campaña sin grandes crisis: ${club.name} terminó ${season.position}°${promotedTo ? ` y ascendió a ${promotedTo}` : ""}.`,
   };
-  state.manager.reputation = clamp(state.manager.reputation + reputationDelta, 0, 1000); state.history.push(record);
+  state.manager.reputation = clamp(state.manager.reputation + reputationDelta, 0, 1000); state.manager.age++; state.history.push(record);
   if (promotedTo) state.clubDivisions[club.id] = promotedTo;
+  const seasonsAtClub = (state.clubSeasons[club.id] ?? 0) + 1; state.clubSeasons[club.id] = seasonsAtClub;
+  const idolDelta = 3 + Math.min(10, seasonsAtClub * 2) + (objectiveMet ? 6 : -10) + (champion ? 15 : 0) + (libertadoresChampion ? 14 : 0);
+  state.clubIdolatry[club.id] = clamp((state.clubIdolatry[club.id] ?? 0) + idolDelta);
+  if (champion && season.division === "Liga Profesional") state.achievements.leagueTitles++;
+  if (libertadoresChampion) state.achievements.libertadoresTitles++;
   state.promotions += promoted ? 1 : 0; state.trophies += (champion ? 1 : 0) + season.cups.filter((cup) => cup.status === "champion").length; delete state.season;
   if (!objectiveMet) delete state.clubId;
+  return state;
+}
+
+export function canMoveToEurope(state: CareerState) {
+  return state.achievements.leagueTitles > 0 && state.achievements.libertadoresTitles > 0;
+}
+
+export function endCareer(input: CareerState, reason: "retirement" | "europe"): CareerState {
+  const state = structuredClone(input); const activeClub = state.season?.clubId ?? state.clubId; const club = activeClub ? getClub(activeClub).name : state.history.at(-1)?.club;
+  const year = state.season?.year ?? state.history.at(-1)?.year ?? 2026;
+  state.ending = reason === "europe"
+    ? { reason, year, age: state.manager.age, club, title: "El llamado de Europa", description: "Después de conquistar el campeonato argentino y la Copa Libertadores, llegó la propuesta que completa tu recorrido. Dejás el país habiéndolo ganado todo." }
+    : { reason, year, age: state.manager.age, club, title: "El último silbato", description: "Decidiste cerrar tu carrera por voluntad propia. Los resultados quedan atrás; la historia y la huella en cada club permanecen." };
+  delete state.season; delete state.clubId;
   return state;
 }

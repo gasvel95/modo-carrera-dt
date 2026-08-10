@@ -149,4 +149,39 @@ export const EVENTS: GameEvent[] = [
   event({ id: "viral_celebration", category: "medios", level: "MEDIUM", kicker: "REDES ENCENDIDAS", title: "Un festejo se volvió viral", description: "La celebración de {player} gustó a los hinchas pero molestó al próximo rival.", minWeek: 5, condition: "good_form", options: [
     option("celebrate_more", "Defender la espontaneidad", "bold", { fanApproval: 9, morale: 6 }, { pressure: 7 }), option("lower_tone", "Pedirle que baje el tono", "safe", { respect: 5, pressure: -3 }, { morale: -5 }), option("use_message", "Convertirlo en una campaña del club", "calm", { boardTrust: 7, fanApproval: 6 }, { harmony: -3 }),
   ] }),
+  event({ id: "afa_fixed_match", category: "institucional", level: "CAREER_DEFINING", kicker: "UNA VISITA INACEPTABLE", title: "Un dirigente de AFA te pide perder", description: "Un dirigente ficticio te insinúa que entregues el próximo partido. A cambio promete favorecer al club más adelante. No hay testigos y cualquier decisión puede volverse en tu contra.", minWeek: 13, condition: "any", options: [
+    { id: "accept_fix", text: "Aceptar el arreglo", approach: "bold", outcomes: [
+      { id: "accept_fix_works", title: "El pacto clandestino rinde frutos", description: "El partido se pierde sin sospechas y después aparecen fallos favorables. Deportivamente obtenés una ventaja, aunque el secreto queda enterrado.", baseProbability: .44, tone: "positive", effects: { performance: .075, boardTrust: 7, respect: -6 } },
+      { id: "accept_fix_fails", title: "El vestuario detecta la maniobra", description: "Los jugadores sienten que fueron utilizados. La promesa nunca se cumple y la confianza interna se derrumba.", baseProbability: .56, tone: "negative", effects: { morale: -16, harmony: -13, pressure: 10, performance: -.04 } },
+    ] },
+    { id: "reject_fix", text: "Rechazarlo y jugar para ganar", approach: "calm", outcomes: [
+      { id: "reject_fix_works", title: "El plantel se une detrás de vos", description: "Tu negativa llega al vestuario y refuerza la convicción del grupo. El equipo compite con una energía distinta.", baseProbability: .58, tone: "positive", effects: { morale: 14, harmony: 10, respect: 12, performance: .025 } },
+      { id: "reject_fix_fails", title: "Empiezan los fallos inexplicables", description: "La negativa tiene costo: decisiones arbitrales dudosas perjudican al equipo durante varias fechas.", baseProbability: .42, tone: "negative", effects: { performance: -.085, pressure: 12, boardTrust: -5 } },
+    ] },
+    { id: "report_fix", text: "Denunciarlo ante la dirigencia del club", approach: "safe", outcomes: [
+      { id: "report_fix_backing", title: "El club te respalda", description: "La dirigencia documenta la situación y cierra filas. El plantel valora que hayas protegido al equipo.", baseProbability: .52, tone: "positive", effects: { boardTrust: 13, morale: 8, respect: 10 } },
+      { id: "report_fix_leak", title: "La denuncia se filtra", description: "La historia llega a los medios sin pruebas suficientes y el club queda bajo una presión feroz.", baseProbability: .48, tone: "negative", effects: { pressure: 16, boardTrust: -8, performance: -.035 } },
+    ] },
+  ] }),
+  event({ id: "night_out", category: "vestuario", level: "MEDIUM", kicker: "SALIDA NOCTURNA", title: "Tres titulares rompieron la concentración", description: "Una foto confirma que varios jugadores salieron de madrugada antes de un partido importante.", minWeek: 8, condition: "any", options: [
+    option("suspend_three", "Suspender a los tres", "bold", { respect: 14, harmony: 6 }, { performance: -.05, morale: -7 }), option("fine_three", "Multarlos y mantenerlos", "calm", { respect: 7, performance: .015 }, { harmony: -7 }), option("internal_case", "Resolverlo sin hacerlo público", "safe", { harmony: 8, pressure: -3 }, { respect: -10 }),
+  ] }),
+  event({ id: "training_facilities", category: "dirigentes", level: "MEDIUM", kicker: "PREDIO POSTERGADO", title: "La obra del vestuario quedó frenada", description: "La dirigencia desvió fondos y el plantel entrena con instalaciones deterioradas.", minWeek: 7, condition: "any", options: [
+    option("demand_facilities", "Exigir que terminen la obra", "bold", { morale: 8, respect: 8 }, { boardTrust: -12 }), option("adapt_facilities", "Adaptarse hasta fin de año", "safe", { boardTrust: 8 }, { morale: -7, performance: -.02 }), option("players_meeting", "Negociar junto a los referentes", "calm", { harmony: 9, boardTrust: 4 }, { pressure: 5 }),
+  ] }),
+  event({ id: "loan_recall", category: "mercado", level: "MAJOR", kicker: "LLAMADO INESPERADO", title: "El club dueño reclama a un cedido", description: "Uno de los jugadores de mayor recambio puede irse antes de la parte decisiva del torneo.", minWeek: 14, condition: "any", options: [
+    option("buy_loan", "Pedir que compren su pase", "bold", { strength: 3, morale: 6 }, { boardTrust: -11 }), option("replace_loan", "Preparar un reemplazo interno", "calm", { performance: .02, respect: 5 }, { strength: -2 }), option("release_loan", "Dejarlo regresar", "safe", { boardTrust: 7 }, { morale: -7, performance: -.03 }),
+  ] }),
+  event({ id: "analyst_warning", category: "deportivo", level: "MEDIUM", kicker: "DATOS EN ROJO", title: "El analista detecta una tendencia peligrosa", description: "El equipo concede casi todas sus ocasiones por el mismo sector y los rivales ya parecen haberlo notado.", minWeek: 9, condition: "any", options: [
+    option("change_sector", "Modificar ese sector", "calm", { performance: .04, respect: 5 }, { harmony: -5 }), option("individual_work", "Hacer trabajo individual", "safe", { morale: 5, performance: .02 }, { pressure: 4 }), option("ignore_data", "Confiar en la lectura del campo", "bold", { respect: 8 }, { performance: -.045 }),
+  ] }),
+  event({ id: "president_election", category: "dirigentes", level: "MAJOR", kicker: "AÑO ELECTORAL", title: "La campaña política entra al vestuario", description: "Dos candidatos quieren una foto con vos y prometen proyectos deportivos opuestos.", minWeek: 12, condition: "any", options: [
+    option("current_board", "Respaldar al oficialismo", "safe", { boardTrust: 13 }, { fanApproval: -8 }), option("stay_neutral", "Mantenerte neutral", "calm", { respect: 8, pressure: -4 }, { boardTrust: -6 }), option("demand_plan", "Escuchar a ambos y exigir un plan", "bold", { respect: 11, fanApproval: 6 }, { pressure: 7 }),
+  ] }),
+  event({ id: "player_family_issue", category: "vestuario", level: "MEDIUM", kicker: "ANTES QUE EL FÚTBOL", title: "Un titular pide licencia personal", description: "{player} atraviesa un problema familiar y no sabe cuándo estará listo para volver.", minWeek: 6, condition: "any", options: [
+    option("full_leave", "Darle licencia sin plazo", "calm", { harmony: 13, respect: 9 }, { performance: -.035 }), option("short_leave", "Acordar una semana", "safe", { morale: 6, performance: -.015 }, { respect: -4 }), option("need_player", "Pedirle que siga disponible", "bold", { performance: .025 }, { harmony: -14, morale: -8 }),
+  ] }),
+  event({ id: "fan_tactical_demand", category: "institucional", level: "MEDIUM", kicker: "MURMULLO DE TRIBUNA", title: "La gente pide jugar con dos delanteros", description: "El reclamo crece incluso cuando llegan resultados. La identidad del equipo quedó en discusión.", minWeek: 8, condition: "any", options: [
+    option("two_strikers", "Probar dos delanteros", "bold", { fanApproval: 10, performance: .03 }, { harmony: -5 }), option("defend_identity", "Defender tu idea", "calm", { respect: 9, performance: .02 }, { fanApproval: -8 }), option("situational_change", "Usarlo sólo según el rival", "safe", { fanApproval: 5, respect: 5 }, { pressure: 3 }),
+  ] }),
 ];

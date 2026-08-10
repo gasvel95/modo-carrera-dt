@@ -38,6 +38,7 @@ export type Effects = Partial<{
   fanApproval: number;
   boardTrust: number;
   pressure: number;
+  idolatry: number;
   respect: number;
   strength: number;
   performance: number;
@@ -160,8 +161,17 @@ export type SeasonRecord = {
   contractTerminated: boolean;
 };
 
+export type CareerEnding = {
+  reason: "retirement" | "europe";
+  year: number;
+  age: number;
+  club?: string;
+  title: string;
+  description: string;
+};
+
 export type CareerState = {
-  version: 5;
+  version: 6;
   seed: number;
   rngState: number;
   manager: Manager;
@@ -173,6 +183,10 @@ export type CareerState = {
   clubDivisions: Record<string, string>;
   eventHistory: Record<string, number>;
   offerHistory: Array<{ year: number; clubIds: string[] }>;
+  clubIdolatry: Record<string, number>;
+  clubSeasons: Record<string, number>;
+  achievements: { leagueTitles: number; libertadoresTitles: number };
+  ending?: CareerEnding;
 };
 
 export type MeaningfulMoment =

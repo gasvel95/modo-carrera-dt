@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { advanceUntilNextMeaningfulMoment, confirmSeasonTactics, createCareer, finishSeason, generateOffers, resolveEvent, startSeason } from "../src/game-engine/careerEngine.ts";
+import { advanceUntilNextMeaningfulMoment, canMoveToEurope, confirmSeasonTactics, createCareer, endCareer, finishSeason, generateOffers, resolveEvent, startSeason } from "../src/game-engine/careerEngine.ts";
 import { EVENTS } from "../src/data/events.ts";
 import { getClub } from "../src/data/clubs.ts";
 
@@ -137,8 +137,34 @@ test("qualified teams play domestic and international cups", () => {
 
 test("scorers are attacking players and never exceed fifteen goals", () => {
   const state = autoplay(2027); const scorers = state.history[0].topScorers;
-  assert.ok(scorers.every((player) => player.goals <= 15));
+  assert.ok(scorers.every((player) => player.goals <= 12));
+  assert.ok(scorers.reduce((sum, player) => sum + player.goals, 0) <= 42);
   assert.ok(scorers.every((player) => !/^(ARQ|DFC|LAT|LI|LD|DEF)$/i.test(player.position)));
+});
+
+test("idolatry persists by club and lowers starting pressure", () => {
+  const plain = startSeason(createCareer(manager, 91), "ituzaingo");
+  const career = createCareer(manager, 91); career.clubIdolatry.ituzaingo = 70;
+  let idol = startSeason(career, "ituzaingo");
+  assert.equal(idol.season?.idolatry, 70);
+  assert.ok((idol.season?.pressure ?? 100) < (plain.season?.pressure ?? 0));
+  idol.season!.position = 5; idol = finishSeason(idol);
+  assert.ok(idol.clubIdolatry.ituzaingo > 70);
+});
+
+test("career can end by retirement or a move to Europe", () => {
+  let state = createCareer(manager, 100); const retired = endCareer(state, "retirement");
+  assert.equal(retired.ending?.reason, "retirement");
+  state.achievements = { leagueTitles: 1, libertadoresTitles: 1 };
+  assert.equal(canMoveToEurope(state), true);
+  assert.equal(endCareer(state, "europe").ending?.reason, "europe");
+});
+
+test("the AFA approach has distinct accept and reject consequences", () => {
+  const event = EVENTS.find((item) => item.id === "afa_fixed_match"); assert.ok(event);
+  assert.equal(event?.options.length, 3);
+  assert.ok(event?.options.some((choice) => choice.id === "accept_fix" && choice.outcomes.some((outcome) => (outcome.effects.morale ?? 0) < 0)));
+  assert.ok(event?.options.some((choice) => choice.id === "reject_fix" && choice.outcomes.some((outcome) => (outcome.effects.performance ?? 0) < 0)));
 });
 
 test("missing the objective terminates the contract", () => {
