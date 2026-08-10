@@ -190,6 +190,21 @@ const CUP_STAGES: Record<CupRun["name"], string[]> = {
   "Copa Sudamericana": ["Fase de grupos", "Octavos de final", "Cuartos de final", "Semifinal", "Final"],
 };
 
+const INTERNATIONAL_RIVALS = ["Flamengo", "Palmeiras", "São Paulo", "Peñarol", "Nacional", "Colo-Colo", "LDU Quito", "Atlético Nacional", "Olimpia", "Cerro Porteño", "Barcelona SC", "Independiente del Valle"];
+
+function cupOpponent(season: Season, cup: CupRun, seed: number) {
+  const pool = cup.name === "Copa Argentina"
+    ? season.standings.filter((row) => row.id !== season.clubId).map((row) => row.name)
+    : INTERNATIONAL_RIVALS;
+  return pool[seededScore(`${season.clubId}-${season.year}-${cup.name}-${cup.roundIndex}`, seed) % pool.length];
+}
+
+function leagueOpponent(season: Season, seed: number, relegationFight = false) {
+  const eligible = season.standings.filter((row) => row.id !== season.clubId);
+  const pool = relegationFight ? eligible.slice(-5) : eligible;
+  return pool[seededScore(`${season.clubId}-${season.year}-${season.week}-rival`, seed) % pool.length];
+}
+
 function simulateCups(input: CareerState, forcedCup?: { name: CupRun["name"]; result: MatchResult }): CareerState {
   const state = structuredClone(input); const season = state.season!; let rng = state.rngState;
   for (const cup of season.cups.filter((item) => item.status === "active" && item.nextWeek <= season.week)) {
@@ -273,19 +288,22 @@ function keyMatchEvent(state: CareerState): GameEvent | undefined {
   if (dueCup) {
     let chance; [chance, state.rngState] = nextRandom(state.rngState);
     if (dueCup.roundIndex >= 2 || chance < .38) {
-      id = `key_cup_${season.year}_${dueCup.name}_${dueCup.roundIndex}`; kicker = `${dueCup.name.toUpperCase()} · ${dueCup.stage.toUpperCase()}`; title = "Una noche que puede cambiar la temporada";
-      description = `${dueCup.name} no admite distracciones. El cuerpo técnico espera tu plan para ${dueCup.stage.toLowerCase()}.`;
-      target = { type: "cup", label: `${dueCup.name} · ${dueCup.stage}`, cupName: dueCup.name };
+      const opponent = cupOpponent(season, dueCup, state.seed);
+      id = `key_cup_${season.year}_${dueCup.name}_${dueCup.roundIndex}`; kicker = `${dueCup.name.toUpperCase()} · ${dueCup.stage.toUpperCase()}`; title = `${club.name} vs. ${opponent}`;
+      description = `${dueCup.name} no admite distracciones. El próximo rival es ${opponent} y el cuerpo técnico espera tu plan para ${dueCup.stage.toLowerCase()}.`;
+      target = { type: "cup", label: `${dueCup.name} ante ${opponent} · ${dueCup.stage}`, cupName: dueCup.name };
     }
   } else if (club.rivalId && nextWeek === derbyWeek) {
     const rival = getClub(club.rivalId); id = `key_derby_${season.year}`; kicker = "CLÁSICO RIVAL"; title = `${club.name} contra ${rival.name}`;
-    description = "No es una fecha más. La ciudad se paraliza y una decisión táctica puede definir el clásico."; target = { type: "league", label: `Clásico ante ${rival.name}` };
+    description = `No es una fecha más: el rival es ${rival.name}. La ciudad se paraliza y una decisión táctica puede definir el clásico.`; target = { type: "league", label: `Clásico ante ${rival.name}` };
   } else if (relegationFight) {
-    id = `key_relegation_${season.year}`; kicker = "PARTIDO POR LA PERMANENCIA"; title = "Noventa minutos para escapar del fondo";
-    description = "Un rival directo espera del otro lado. Ganar puede sacar al equipo de la zona roja; perder multiplica la presión."; target = { type: "league", label: "Partido clave por la permanencia" };
+    const opponent = leagueOpponent(season, state.seed, true);
+    id = `key_relegation_${season.year}`; kicker = "PARTIDO POR LA PERMANENCIA"; title = `${club.name} vs. ${opponent.name}`;
+    description = `${opponent.name} es un rival directo. Ganar puede sacar al equipo de la zona roja; perder multiplica la presión.`; target = { type: "league", label: `Partido clave por la permanencia ante ${opponent.name}` };
   } else if (nextWeek === campaignWeek) {
-    id = `key_campaign_${season.year}`; kicker = season.position <= 6 ? "PARTIDO PARA DAR EL SALTO" : "PARTIDO BISAGRA"; title = "La campaña llega a una fecha decisiva";
-    description = season.position <= 6 ? "Una victoria acerca al equipo a los puestos de privilegio." : "La tabla está apretada y estos puntos pueden cambiar el rumbo del año."; target = { type: "league", label: "Partido clave para la campaña" };
+    const opponent = leagueOpponent(season, state.seed);
+    id = `key_campaign_${season.year}`; kicker = season.position <= 6 ? "PARTIDO PARA DAR EL SALTO" : "PARTIDO BISAGRA"; title = `${club.name} vs. ${opponent.name}`;
+    description = season.position <= 6 ? `${opponent.name} espera en una fecha que puede acercar al equipo a los puestos de privilegio.` : `El rival será ${opponent.name}. La tabla está apretada y estos puntos pueden cambiar el rumbo del año.`; target = { type: "league", label: `Partido clave para la campaña ante ${opponent.name}` };
   }
   if (!target || season.seenEvents.includes(id)) return undefined;
   return { id, category: "partido_trascendental", level: "CAREER_DEFINING", kicker, title, description, minWeek: season.week, condition: "any", weight: 100, matchTarget: target, options: [

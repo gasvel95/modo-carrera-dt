@@ -119,6 +119,7 @@ test("decisive match events resolve an actual match result", () => {
   for (let guard = 0; guard < 12 && state.season; guard++) {
     const moment = advanceUntilNextMeaningfulMoment(state); state = moment.state;
     if (moment.type === "event" && moment.event.category === "partido_trascendental") {
+      assert.match(moment.event.title, / vs\. | contra /i);
       const playedBefore = state.season!.played; const resolution = resolveEvent(state, moment.event, moment.event.options[0]);
       assert.equal(resolution.state.season!.played, playedBefore + 1);
       assert.match(resolution.outcome.description, /\d+-\d+|avanzó|eliminado|campeón/i); found = true; break;
@@ -129,7 +130,8 @@ test("decisive match events resolve an actual match result", () => {
 });
 
 test("the catalog includes fictional bizarre Argentine-football incidents", () => {
-  for (const id of ["locker_room_weapon", "player_fights_fan", "former_player_criticism", "wrong_kits", "locked_dressing_room", "mascot_red_card"]) assert.ok(EVENTS.some((event) => event.id === id));
+  for (const id of ["locker_room_weapon", "player_fights_fan", "former_player_criticism", "wrong_kits", "locked_dressing_room", "assistant_red_card"]) assert.ok(EVENTS.some((event) => event.id === id));
+  assert.equal(EVENTS.some((event) => /mascota/i.test(`${event.title} ${event.description}`)), false);
 });
 
 test("a promoted club starts the next season in the higher division", () => {
