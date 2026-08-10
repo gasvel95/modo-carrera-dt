@@ -1,62 +1,116 @@
-import type { EventOption, GameEvent } from "../domain/game.ts";
+import type { Effects, EventOption, GameEvent } from "../domain/game.ts";
 
-const options = (topic: string): EventOption[] => [
-  {
-    id: "bold",
-    text: "Dar la cara y tomar el control",
-    approach: "bold",
-    outcomes: [
-      { id: "rally", title: "El plantel te respalda", description: `Tu decisión sobre ${topic} fortalece al grupo. La respuesta fue mejor de lo esperado.`, baseProbability: .46, tone: "positive", effects: { morale: 12, respect: 15, performance: .04 } },
-      { id: "escalates", title: "La apuesta salió mal", description: "La situación se desordenó y ahora todas las miradas caen sobre vos.", baseProbability: .30, tone: "negative", effects: { morale: -10, pressure: 14, boardTrust: -8 } },
-      { id: "stays", title: "La tensión sigue", description: "Ganaste tiempo, aunque el problema todavía no desapareció.", baseProbability: .24, tone: "neutral", effects: { respect: 3, pressure: 2 } },
-    ],
-  },
-  {
-    id: "calm",
-    text: "Hablar puertas adentro",
-    approach: "calm",
-    outcomes: [
-      { id: "dialogue", title: "El diálogo ordena al grupo", description: "Los referentes valoraron el tono y ayudaron a cerrar filas.", baseProbability: .52, tone: "positive", effects: { harmony: 13, morale: 7, respect: 8 } },
-      { id: "halfway", title: "Una tregua frágil", description: "El vestuario bajó un cambio, pero espera resultados.", baseProbability: .33, tone: "neutral", effects: { harmony: 4, pressure: -2 } },
-      { id: "weak", title: "Confundieron calma con debilidad", description: "La interna creció y la dirigencia pide respuestas.", baseProbability: .15, tone: "negative", effects: { harmony: -12, boardTrust: -8, pressure: 9 } },
-    ],
-  },
-  {
-    id: "safe",
-    text: "Delegar en la dirigencia",
-    approach: "safe",
-    outcomes: [
-      { id: "board", title: "La dirigencia destraba el conflicto", description: "El club resolvió el frente institucional sin exponer al equipo.", baseProbability: .42, tone: "positive", effects: { boardTrust: 11, pressure: -9 } },
-      { id: "distance", title: "El problema queda contenido", description: "No hubo daño inmediato, aunque perdiste algo de ascendencia.", baseProbability: .38, tone: "neutral", effects: { respect: -4, pressure: -2 } },
-      { id: "alone", title: "El plantel se sintió solo", description: "Los jugadores esperaban que los defendieras personalmente.", baseProbability: .20, tone: "negative", effects: { morale: -8, respect: -12 } },
-    ],
-  },
+const option = (id: string, text: string, approach: EventOption["approach"], positive: Effects, negative: Effects): EventOption => ({
+  id, text, approach,
+  outcomes: [
+    { id: `${id}_works`, title: "La jugada sale bien", description: `La decisión de “${text}” encuentra una respuesta positiva dentro del club.`, baseProbability: .46, tone: "positive", effects: positive },
+    { id: `${id}_mixed`, title: "Un equilibrio inestable", description: "El problema pierde temperatura, aunque deja una cuenta pendiente.", baseProbability: .30, tone: "neutral", effects: { pressure: -2, respect: 2 } },
+    { id: `${id}_fails`, title: "La situación se vuelve en contra", description: "El mensaje no cayó como esperabas y ahora necesitás resultados.", baseProbability: .24, tone: "negative", effects: negative },
+  ],
+});
+
+const event = (value: Omit<GameEvent, "weight">): GameEvent => ({ ...value, weight: 10 });
+
+export const EVENTS: GameEvent[] = [
+  event({ id: "substitute_demands", category: "vestuario", level: "MEDIUM", kicker: "PUERTAS ADENTRO", title: "El suplente golpeó la puerta", description: "{player} está cansado de esperar. Pide ser titular el próximo partido y amenaza con hablar públicamente.", minWeek: 4, condition: "any", options: [
+    option("start_him", "Darle la titularidad", "bold", { morale: 5, harmony: 7, performance: .02 }, { respect: -8, harmony: -5 }),
+    option("earn_it", "Decirle que se lo gane entrenando", "calm", { respect: 10, harmony: 4 }, { morale: -7, pressure: 5 }),
+    option("loan_list", "Ponerlo en la lista de salidas", "safe", { harmony: 6, respect: 4 }, { morale: -10, harmony: -9 }),
+  ] }),
+  event({ id: "referent_bed", category: "vestuario", level: "MAJOR", kicker: "INTERNA PESADA", title: "Un referente te está haciendo la cama", description: "El cuerpo técnico detectó reuniones sin vos. {player} cuestiona tus métodos y tiene ascendencia sobre el plantel.", minWeek: 7, condition: "low_morale", options: [
+    option("confront", "Enfrentarlo delante del grupo", "bold", { respect: 16, harmony: 6 }, { harmony: -18, morale: -10 }),
+    option("private_talk", "Citarlo a una charla privada", "calm", { harmony: 13, respect: 7 }, { pressure: 8, respect: -5 }),
+    option("bench_referent", "Sacarlo del equipo", "safe", { respect: 11, performance: .02 }, { morale: -13, performance: -.04 }),
+  ] }),
+  event({ id: "captain_tactics", category: "vestuario", level: "MEDIUM", kicker: "VOCES DEL PLANTEL", title: "El capitán cuestiona el sistema", description: "El capitán cree que el esquema expone demasiado al equipo y te pide un cambio antes de la próxima fecha.", minWeek: 5, condition: "any", options: [
+    option("listen_captain", "Aceptar su lectura", "calm", { harmony: 12, morale: 5 }, { respect: -7, performance: -.02 }),
+    option("hold_system", "Sostener el sistema", "bold", { respect: 11, performance: .04 }, { harmony: -9, pressure: 7 }),
+    option("co_design", "Diseñar juntos un ajuste", "safe", { harmony: 9, performance: .025 }, { respect: -3, pressure: 3 }),
+  ] }),
+  event({ id: "penalty_taker", category: "vestuario", level: "MEDIUM", kicker: "EGO Y GOLES", title: "Dos jugadores quieren los penales", description: "{player} discutió con el goleador por quién ejecuta el próximo penal. El vestuario espera una orden clara.", minWeek: 6, condition: "any", options: [
+    option("keep_scorer", "Mantener al goleador", "safe", { respect: 7, performance: .02 }, { harmony: -6 }),
+    option("competition", "Definirlo en una competencia", "calm", { morale: 8, harmony: 5 }, { respect: -4 }),
+    option("captain_decides", "Que decida el capitán", "safe", { harmony: 9 }, { respect: -8, pressure: 4 }),
+  ] }),
+  event({ id: "late_training", category: "vestuario", level: "MEDIUM", kicker: "DISCIPLINA", title: "La figura llegó tarde otra vez", description: "{topScorer} volvió a llegar tarde al entrenamiento. Es decisivo en la cancha, pero el grupo empieza a cansarse.", minWeek: 8, condition: "good_form", options: [
+    option("fine_star", "Multarlo como a cualquiera", "bold", { respect: 14, harmony: 9 }, { morale: -7, performance: -.02 }),
+    option("protect_star", "Protegerlo por su rendimiento", "safe", { performance: .035, morale: 3 }, { respect: -13, harmony: -10 }),
+    option("private_warning", "Última advertencia privada", "calm", { respect: 7, harmony: 6 }, { pressure: 5 }),
+  ] }),
+  event({ id: "contract_scorer", category: "mercado", level: "MAJOR", kicker: "CONTRATO EN DISPUTA", title: "El goleador quiere una mejora", description: "{topScorer} siente que sus goles no están reconocidos. Su representante pide una respuesta esta semana.", minWeek: 9, condition: "good_form", options: [
+    option("back_contract", "Apoyar el aumento", "bold", { morale: 9, performance: .03, respect: 6 }, { boardTrust: -11, pressure: 5 }),
+    option("wait_year", "Pedirle que espere hasta fin de año", "calm", { boardTrust: 7, respect: 3 }, { morale: -12, performance: -.03 }),
+    option("bonus_goals", "Ofrecer premios por goles", "safe", { performance: .04, morale: 5 }, { harmony: -5, pressure: 4 }),
+  ] }),
+  event({ id: "offer_star", category: "mercado", level: "MAJOR", kicker: "OFERTA FORMAL", title: "Quieren comprar a tu figura", description: "Llegó una propuesta importante por {topScorer}. La dirigencia necesita dinero, pero perderlo puede cambiar la temporada.", minWeek: 12, condition: "any", options: [
+    option("reject_sale", "Exigir que se quede", "bold", { morale: 10, fanApproval: 10 }, { boardTrust: -15, pressure: 7 }),
+    option("sell_replace", "Vender sólo con reemplazo", "calm", { boardTrust: 8, strength: 2 }, { performance: -.04, morale: -6 }),
+    option("accept_sale", "Aceptar la oferta", "safe", { boardTrust: 14, pressure: -5 }, { fanApproval: -14, performance: -.05 }),
+  ] }),
+  event({ id: "board_youth", category: "dirigentes", level: "MEDIUM", kicker: "PEDIDO DE ARRIBA", title: "La dirigencia exige juveniles", description: "El presidente quiere ver patrimonio del club en cancha, aunque el equipo está peleando puntos importantes.", minWeek: 5, condition: "any", options: [
+    option("play_youth", "Darles minutos ahora", "bold", { fanApproval: 8, respect: 6, performance: .015 }, { performance: -.035, morale: -4 }),
+    option("protect_process", "Defender los tiempos del proceso", "calm", { respect: 8, harmony: 4 }, { boardTrust: -10, pressure: 6 }),
+    option("one_youth", "Subir sólo a la mejor promesa", "safe", { boardTrust: 6, fanApproval: 4 }, { harmony: -3 }),
+  ] }),
+  event({ id: "board_ultimatum", category: "dirigentes", level: "MAJOR", kicker: "ULTIMÁTUM", title: "Te dieron tres partidos", description: "La comisión directiva perdió la paciencia. Necesitás una reacción inmediata para sostener el proyecto.", minWeek: 10, condition: "crisis", options: [
+    option("promise_points", "Prometer siete puntos", "bold", { boardTrust: 13, performance: .045 }, { pressure: 16, boardTrust: -12 }),
+    option("ask_support", "Pedir respaldo público", "calm", { morale: 8, boardTrust: 6 }, { pressure: 8 }),
+    option("change_staff", "Cambiar parte del cuerpo técnico", "safe", { performance: .03, pressure: -5 }, { harmony: -10, respect: -5 }),
+  ] }),
+  event({ id: "supporters_training", category: "institucional", level: "MAJOR", kicker: "CLIMA CALIENTE", title: "La protesta llegó al entrenamiento", description: "Un grupo organizado ficticio exige hablar con el plantel después de la mala racha.", minWeek: 8, condition: "crisis", options: [
+    option("face_supporters", "Dar la cara personalmente", "bold", { respect: 16, morale: 10 }, { pressure: 17, harmony: -9 }),
+    option("security", "Cerrar el predio y llamar a seguridad", "safe", { pressure: -7, boardTrust: 7 }, { fanApproval: -13, morale: -5 }),
+    option("referents_talk", "Que hablen los referentes", "calm", { harmony: 11, pressure: -4 }, { respect: -10, pressure: 8 }),
+    option("board_handles", "Que lo resuelva la dirigencia", "safe", { boardTrust: 8, pressure: -5 }, { respect: -9, morale: -6 }),
+  ] }),
+  event({ id: "press_question", category: "medios", level: "MEDIUM", kicker: "CONFERENCIA CALIENTE", title: "¿Tenés fuerzas para seguir?", description: "La pregunta llegó después de otra derrota. Tu respuesta será la tapa de mañana.", minWeek: 7, condition: "crisis", options: [
+    option("we_reverse", "Vamos a revertirlo", "bold", { morale: 7, fanApproval: 5 }, { pressure: 10 }),
+    option("ask_board", "Pregúntenle a los dirigentes", "safe", { pressure: -4 }, { boardTrust: -12, respect: -5 }),
+    option("no_talk", "Hoy no voy a hablar", "calm", { harmony: 4 }, { fanApproval: -7, pressure: 5 }),
+  ] }),
+  event({ id: "leaked_audio", category: "medios", level: "MAJOR", kicker: "SE FILTRÓ TODO", title: "Un audio del vestuario salió a la luz", description: "Una crítica táctica privada apareció en redes. El club busca al responsable y los jugadores desconfían entre sí.", minWeek: 11, condition: "any", options: [
+    option("investigate", "Investigar hasta encontrarlo", "bold", { respect: 10, boardTrust: 6 }, { harmony: -14, pressure: 8 }),
+    option("close_case", "Cerrar el tema públicamente", "calm", { harmony: 9, pressure: -5 }, { respect: -6 }),
+    option("own_message", "Asumir que la crítica fue tuya", "bold", { respect: 13, morale: 4 }, { fanApproval: -8, boardTrust: -7 }),
+  ] }),
+  event({ id: "striker_injury", category: "lesiones", level: "MAJOR", kicker: "BAJA SENSIBLE", title: "Se lesionó el goleador", description: "{topScorer} estará varias semanas afuera y se acerca una parte decisiva del torneo.", minWeek: 10, condition: "any", options: [
+    option("backup", "Confiar en el suplente", "safe", { morale: 7, harmony: 5 }, { performance: -.04 }),
+    option("youth_striker", "Subir un juvenil", "bold", { fanApproval: 8, performance: .02 }, { performance: -.05, pressure: 5 }),
+    option("new_system", "Jugar sin nueve", "calm", { performance: .035, respect: 5 }, { morale: -5, performance: -.03 }),
+  ] }),
+  event({ id: "keeper_errors", category: "deportivo", level: "MEDIUM", kicker: "BAJO LOS TRES PALOS", title: "El arquero quedó señalado", description: "Dos errores de {player} costaron puntos. Sostenerlo o sacarlo puede marcar al grupo.", minWeek: 6, condition: "low_morale", options: [
+    option("keep_keeper", "Respaldarlo públicamente", "calm", { morale: 10, harmony: 5 }, { performance: -.04, pressure: 6 }),
+    option("change_keeper", "Cambiar de arquero", "safe", { performance: .025, respect: 7 }, { morale: -8, harmony: -4 }),
+    option("compete_week", "Definirlo en la semana", "bold", { performance: .02, morale: 4 }, { pressure: 4 }),
+  ] }),
+  event({ id: "derby_plan", category: "deportivo", level: "CAREER_DEFINING", kicker: "SE VIENE EL CLÁSICO", title: "La ciudad se detiene", description: "El clásico llega con la tabla apretada. La gente no quiere explicaciones: quiere ganar.", minWeek: 13, condition: "any", options: [
+    option("attack_derby", "Salir a ganar desde el minuto uno", "bold", { fanApproval: 16, performance: .05 }, { fanApproval: -17, pressure: 12 }),
+    option("normal_derby", "Jugar como siempre", "calm", { harmony: 7, performance: .02 }, { pressure: 4 }),
+    option("dont_lose", "Primero, no perder", "safe", { pressure: -6, boardTrust: 5 }, { fanApproval: -9, respect: -4 }),
+  ] }),
+  event({ id: "winning_streak", category: "deportivo", level: "MEDIUM", kicker: "TODO SALE", title: "La racha empieza a pesar", description: "Cinco partidos sin perder pusieron al equipo en boca de todos. El plantel empieza a mirar la tabla.", minWeek: 9, condition: "good_form", options: [
+    option("title_talk", "Decir que van por todo", "bold", { morale: 9, performance: .04 }, { pressure: 13, performance: -.02 }),
+    option("low_profile", "Bajar el perfil", "safe", { pressure: -8, harmony: 5 }, { fanApproval: -5 }),
+    option("raise_bar", "Subir la exigencia interna", "calm", { performance: .035, respect: 7 }, { morale: -6 }),
+  ] }),
+  event({ id: "youth_gem", category: "juveniles", level: "MEDIUM", kicker: "LA CANTERA PIDE PISTA", title: "Apareció una joya", description: "Un delantero de 17 años viene rompiéndola en Reserva. Los hinchas ya piden verlo en Primera.", minWeek: 7, condition: "any", options: [
+    option("promote_gem", "Subirlo al plantel", "bold", { fanApproval: 10, performance: .02 }, { pressure: 5, morale: -3 }),
+    option("develop_gem", "Dejarlo desarrollarse", "safe", { boardTrust: 6, harmony: 3 }, { fanApproval: -5 }),
+    option("bench_minutes", "Llevarlo de a poco", "calm", { fanApproval: 6, performance: .015 }, { pressure: 2 }),
+  ] }),
+  event({ id: "bonus_dispute", category: "dirigentes", level: "MEDIUM", kicker: "NÚMEROS EN ROJO", title: "No aparece el premio prometido", description: "El plantel reclama un premio por objetivos que todavía no fue pagado. La dirigencia te pide que calmes las aguas.", minWeek: 12, condition: "any", options: [
+    option("side_players", "Ponerte del lado del plantel", "bold", { respect: 13, morale: 8 }, { boardTrust: -14, pressure: 6 }),
+    option("ask_patience", "Pedir paciencia", "calm", { boardTrust: 7, harmony: 3 }, { morale: -8, respect: -5 }),
+    option("mediate_bonus", "Negociar un pago parcial", "safe", { harmony: 9, boardTrust: 4 }, { pressure: 4 }),
+  ] }),
+  event({ id: "rival_interest", category: "carrera", level: "MAJOR", kicker: "RUMOR DE PASILLO", title: "Otro club preguntó por vos", description: "Tu campaña llamó la atención. La noticia llegó al vestuario antes de que pudieras hablar con el presidente.", minWeek: 14, condition: "good_form", options: [
+    option("deny_interest", "Negar todo y enfocarte", "safe", { harmony: 9, boardTrust: 8 }, { respect: -3 }),
+    option("admit_interest", "Admitir que te seduce", "bold", { respect: 5, fanApproval: 3 }, { harmony: -9, boardTrust: -12 }),
+    option("no_comment", "No hacer comentarios", "calm", { pressure: -2 }, { boardTrust: -6, pressure: 5 }),
+  ] }),
+  event({ id: "training_fight", category: "vestuario", level: "MAJOR", kicker: "VOLÓ UNA PIÑA", title: "Dos jugadores se pelearon", description: "La práctica terminó antes de tiempo. Uno es referente; el otro, una de las apariciones del año.", minWeek: 10, condition: "any", options: [
+    option("punish_both", "Sancionar a los dos", "safe", { respect: 12, harmony: 6 }, { morale: -8 }),
+    option("protect_youth", "Proteger al más joven", "calm", { fanApproval: 5, morale: 4 }, { harmony: -10, respect: -4 }),
+    option("group_decides", "Que el grupo resuelva", "bold", { harmony: 13, respect: 5 }, { respect: -11, pressure: 6 }),
+  ] }),
 ];
-
-const archetypes = [
-  ["vestuario", "PUERTAS ADENTRO", "El referente levantó la voz", "Un referente cuestionó el plan delante del grupo. El vestuario espera tu reacción.", "low_morale"],
-  ["mercado", "MERCADO DE PASES", "Llegó una oferta por tu figura", "La dirigencia quiere vender. El reemplazo no está asegurado y el plantel mira de cerca.", "any"],
-  ["dirigentes", "REUNIÓN URGENTE", "La paciencia tiene un límite", "La comisión directiva pide una explicación por el presente del equipo.", "crisis"],
-  ["hinchas", "CLIMA CALIENTE", "La tribuna perdió la paciencia", "Un grupo de hinchas organizados llegó al entrenamiento. Es una situación ficticia dentro de esta partida.", "crisis"],
-  ["deportivo", "SEMANA DECISIVA", "El partido que puede cambiar todo", "El próximo resultado puede poner al equipo en carrera o hundirlo en la tabla.", "any"],
-  ["medios", "TAPA DE LOS DIARIOS", "Te pusieron en el centro de la escena", "Una frase de la conferencia encendió el debate y todos esperan una respuesta.", "any"],
-  ["lesiones", "BAJA SENSIBLE", "Se lesionó una pieza clave", "Quedan semanas importantes y el cuerpo técnico necesita una decisión rápida.", "any"],
-  ["institucional", "TENSIÓN EN EL CLUB", "El entrenamiento fue interrumpido", "La seguridad cerró el predio tras una protesta de un grupo organizado ficticio.", "crisis"],
-  ["juveniles", "LA CANTERA PIDE PISTA", "Apareció una joya", "Un juvenil de 17 años viene rompiéndola. Subirlo ahora puede cambiar su historia y la tuya.", "good_form"],
-  ["carrera", "EL TELÉFONO SONÓ", "Otro club preguntó por vos", "Tu trabajo llamó la atención. Hablar ahora puede afectar la relación con la dirigencia.", "good_form"],
-] as const;
-
-export const EVENTS: GameEvent[] = archetypes.flatMap(([category, kicker, title, description, condition], archetypeIndex) =>
-  Array.from({ length: 12 }, (_, variant) => ({
-    id: `${category}_${variant + 1}`,
-    category,
-    level: variant === 11 ? "CAREER_DEFINING" : variant % 4 === 0 ? "MAJOR" : "MEDIUM",
-    kicker,
-    title: variant === 0 ? title : `${title} · capítulo ${variant + 1}`,
-    description,
-    minWeek: 3 + (variant % 9),
-    condition,
-    weight: 12 - variant / 2 + archetypeIndex / 10,
-    options: options(title.toLowerCase()),
-  })),
-);

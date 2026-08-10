@@ -6,4 +6,4 @@ La probabilidad de victoria combina fuerza del club, filosofía, moral, presión
 
 El RNG xorshift32 conserva `rngState` en el guardado. Una semilla y las mismas decisiones reproducen la carrera. Los tests recorren temporadas completas, comprueban invariantes y verifican reproducibilidad.
 
-La tabla del slice es una aproximación agregada, no un fixture completo de todos los clubes. La siguiente etapa reemplazará la estimación por standings calculados con fixtures data-driven.
+La simulación mantiene una tabla completa de 18 clubes por división. Cada fila conserva PJ, PG, PE, PP, GF, GC y puntos; el orden se recalcula por puntos, diferencia de gol y goles a favor. También distribuye cada gol del equipo entre sus atacantes y refuerzos.

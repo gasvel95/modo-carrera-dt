@@ -3,9 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { generateOffers, advanceUntilNextMeaningfulMoment, createCareer, finishSeason, resolveEvent, startSeason } from "../game-engine/careerEngine";
 import { getClub } from "../data/clubs";
+import { crestUrl } from "../data/divisions";
 import type { CareerState, EventOutcome, GameEvent, Philosophy } from "../domain/game";
 
-const STORAGE_KEY = "convertite-en-dt:carrera:v1";
+const STORAGE_KEY = "convertite-en-dt:carrera:v2";
 const philosophies: Philosophy[] = ["Ofensivo", "Defensivo", "Equilibrado", "Motivador", "Formador", "Pragmático"];
 type Screen = "intro" | "offers" | "season" | "event" | "outcome" | "summary" | "history";
 
@@ -21,6 +22,10 @@ function FormDot({ result }: { result: "W" | "D" | "L" }) {
   return <span className={`form-dot ${result}`} title={result === "W" ? "Victoria" : result === "D" ? "Empate" : "Derrota"}>{result === "W" ? "G" : result === "D" ? "E" : "P"}</span>;
 }
 
+function Crest({ crestId, name, small = false }: { crestId: number; name: string; small?: boolean }) {
+  return <img className={small ? "club-crest small" : "club-crest"} src={crestUrl(crestId)} alt={`Escudo de ${name}`} loading="lazy" />;
+}
+
 export function GameApp() {
   const [state, setState] = useState<CareerState | null>(null);
   const [screen, setScreen] = useState<Screen>("intro");
@@ -34,6 +39,7 @@ export function GameApp() {
     if (!saved) return;
     try {
       const parsed = JSON.parse(saved) as CareerState;
+      if (parsed.version !== 2) { localStorage.removeItem(STORAGE_KEY); return; }
       // Restores an external browser snapshot after hydration.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setState(parsed);
@@ -99,19 +105,20 @@ export function GameApp() {
       </section>}
 
       {screen === "offers" && state && <section className="content-view">
-        <div className="page-heading"><div><p className="eyebrow">EL TELÉFONO SONÓ</p><h2>TRES CLUBES.<br />UNA PRIMERA OPORTUNIDAD.</h2></div><div className="manager-stamp"><span>DT</span><strong>{state.manager.name}</strong><small>REP. {state.manager.reputation}</small></div></div>
-        <p className="lead">Nadie te conoce todavía. Estas instituciones están dispuestas a darte las llaves del vestuario.</p>
-        <div className="offer-grid">{offers.map((item, index) => <article className="offer-card" key={item.id}>
-          <div className="offer-top"><span>OFERTA 0{index + 1}</span><strong>{item.division}</strong></div>
-          <div className="club-monogram">{item.shortName}</div><h3>{item.name}</h3><p>{item.region}</p>
+        <div className="page-heading"><div><p className="eyebrow">EL TELÉFONO SONÓ</p><h2>{state.history.length ? <>TU PRÓXIMA<br />DECISIÓN.</> : <>TRES CLUBES.<br />UNA OPORTUNIDAD.</>}</h2></div><div className="manager-stamp"><span>DT</span><strong>{state.manager.name}</strong><small>REP. {state.manager.reputation}</small></div></div>
+        <p className="lead">{state.history.length ? "El mercado leyó tu última campaña. El rendimiento abre puertas, pero el azar también mueve dirigentes." : "Nadie te conoce todavía. Estas instituciones están dispuestas a darte las llaves del vestuario."}</p>
+        <div className="offer-grid">{offers.map(({ club: item, kind, reason }, index) => <article className={`offer-card ${kind}`} key={item.id}>
+          <div className="offer-top"><span>{kind === "renewal" ? "RENOVACIÓN" : `OFERTA 0${index + 1}`}</span><strong>{item.division}</strong></div>
+          <div className="crest-wrap"><Crest crestId={item.crestId} name={item.name} /></div><h3>{item.name}</h3><p>{item.region}</p>
+          <p className="offer-reason">{reason}</p>
           <dl><div><dt>OBJETIVO</dt><dd>{item.objective}</dd></div><div><dt>PLANTEL</dt><dd>{"●".repeat(Math.round(item.squadStrength / 20))}{"○".repeat(5 - Math.round(item.squadStrength / 20))}</dd></div><div><dt>PRESIÓN</dt><dd>{item.fanPressure > 65 ? "ALTA" : item.fanPressure > 45 ? "MEDIA" : "BAJA"}</dd></div></dl>
-          <button className="choice" onClick={() => chooseClub(item.id)}>FIRMAR CONTRATO <span>→</span></button>
+          <button className="choice" onClick={() => chooseClub(item.id)}>{kind === "renewal" ? "RENOVAR CONTRATO" : "FIRMAR CONTRATO"} <span>→</span></button>
         </article>)}</div>
       </section>}
 
       {screen === "season" && state?.season && club && <section className="season-view">
         <div className="scoreboard">
-          <div><p className="eyebrow">TEMPORADA {state.season.year}</p><h2>{club.name}</h2><p>{club.division} · Objetivo: {club.objective}</p></div>
+          <div className="scoreboard-club"><Crest crestId={club.crestId} name={club.name} /><div><p className="eyebrow">TEMPORADA {state.season.year}</p><h2>{club.name}</h2><p>{club.division} · Objetivo: {club.objective}</p></div></div>
           <div className="position"><span>POSICIÓN</span><strong>{state.season.position}°</strong><small>de {state.season.teams}</small></div>
         </div>
         <div className="season-body">
@@ -123,8 +130,9 @@ export function GameApp() {
             <button className="primary simulate" onClick={advance} disabled={busy}>{busy ? <><i className="pulse" /> SIMULANDO TEMPORADA…</> : <>AVANZAR HASTA QUE IMPORTE <span>→</span></>}</button>
             <p className="microcopy center">El motor salta automáticamente los partidos sin decisiones clave.</p>
           </div>
-          <aside className="pulse-card"><div className="section-number">PULSO DEL CLUB</div><Meter label="HINCHAS" value={state.season.fanApproval} /><Meter label="VESTUARIO" value={state.season.morale} /><Meter label="DIRIGENCIA" value={state.season.boardTrust} /><Meter label="PRESIÓN" value={state.season.pressure} /></aside>
+          <aside className="pulse-card"><div className="section-number">PULSO DEL CLUB</div><Meter label="HINCHAS" value={state.season.fanApproval} /><Meter label="VESTUARIO" value={state.season.morale} /><Meter label="DIRIGENCIA" value={state.season.boardTrust} /><Meter label="PRESIÓN" value={state.season.pressure} /><div className="scorers-mini"><div className="section-number">GOLEADORES</div>{[...state.season.scorers].sort((a,b) => b.goals-a.goals).slice(0,4).map((player, index) => <div key={player.name}><span>{index + 1}. {player.name}<small>{player.position}</small></span><strong>{player.goals}</strong></div>)}</div></aside>
         </div>
+        <section className="standings-card"><div className="standings-title"><div><span>TABLA COMPLETA</span><strong>{club.division}</strong></div><small>ACTUALIZADA EN FECHA {state.season.week}</small></div><div className="standings-scroll"><table><thead><tr><th>POS</th><th>EQUIPO</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>DG</th><th>PTS</th></tr></thead><tbody>{state.season.standings.map((row, index) => <tr key={row.id} className={row.id === club.id ? "is-user" : ""}><td>{index + 1}</td><td><Crest crestId={row.crestId} name={row.name} small /><strong>{row.name}</strong></td><td>{row.played}</td><td>{row.won}</td><td>{row.drawn}</td><td>{row.lost}</td><td>{row.goalsFor - row.goalsAgainst > 0 ? "+" : ""}{row.goalsFor - row.goalsAgainst}</td><td><strong>{row.points}</strong></td></tr>)}</tbody></table></div></section>
       </section>}
 
       {screen === "event" && activeEvent && state?.season && <section className="event-view">
@@ -134,13 +142,15 @@ export function GameApp() {
 
       {screen === "outcome" && outcome && state?.season && <section className={`outcome-view ${outcome.tone}`}>
         <div className="outcome-symbol">{outcome.tone === "positive" ? "↑" : outcome.tone === "negative" ? "↓" : "→"}</div><p className="eyebrow">CONSECUENCIA</p><h2>{outcome.title}</h2><p>{outcome.description}</p>
-        <div className="impact-grid">{Object.entries(outcome.effects).filter(([, value]) => value).slice(0, 3).map(([key, value]) => <div key={key}><span>{({ morale: "MORAL", harmony: "ARMONÍA", pressure: "PRESIÓN", respect: "RESPETO", boardTrust: "DIRIGENCIA", performance: "RENDIMIENTO" } as Record<string, string>)[key] ?? key.toUpperCase()}</span><strong>{Number(value) > 0 ? "+" : ""}{key === "performance" ? `${Math.round(Number(value) * 100)}%` : value}</strong></div>)}</div>
+        <div className="impact-grid">{Object.entries(outcome.effects).filter(([, value]) => value).slice(0, 3).map(([key, value]) => <div key={key}><span>{({ morale: "MORAL", harmony: "ARMONÍA", pressure: "PRESIÓN", respect: "RESPETO", boardTrust: "DIRIGENCIA", performance: "RENDIMIENTO", strength: "PLANTEL" } as Record<string, string>)[key] ?? key.toUpperCase()}</span><strong>{Number(value) > 0 ? "+" : ""}{key === "performance" ? `${Math.round(Number(value) * 100)}%` : value}</strong></div>)}</div>
         <button className="primary light" onClick={() => { setOutcome(null); setScreen("season"); }}>CONTINUAR TEMPORADA <span>→</span></button>
       </section>}
 
       {screen === "summary" && state && last && <section className="summary-view">
         <div className="summary-kicker">TEMPORADA {last.year} · INFORME FINAL</div><div className="summary-result"><div><p>{last.club}</p><h2>{last.outcome}</h2><span>{last.division}</span></div><strong>{last.position}°</strong></div>
         <div className="record-line"><div><span>PJ</span><strong>{last.played}</strong></div><div><span>PG</span><strong>{last.won}</strong></div><div><span>PE</span><strong>{last.drawn}</strong></div><div><span>PP</span><strong>{last.lost}</strong></div></div>
+        <div className={`objective-badge ${last.objectiveMet ? "met" : "missed"}`}><span>OBJETIVO DE LA DIRIGENCIA</span><strong>{last.objectiveMet ? "CUMPLIDO" : "INCUMPLIDO"}</strong></div>
+        <section className="season-scorers"><div className="section-number">GOLEADORES DEL EQUIPO</div>{last.topScorers.map((player, index) => <div key={player.name}><span><b>{index + 1}</b>{player.name}<small>{player.position}</small></span><strong>{player.goals} <small>GOLES</small></strong></div>)}</section>
         <blockquote>“{last.story}”</blockquote><div className="career-gain"><span>REPUTACIÓN</span><strong>{state.manager.reputation}</strong><small>{state.manager.reputation < 100 ? "DT DESCONOCIDO" : state.manager.reputation < 250 ? "DT DEL ASCENSO" : state.manager.reputation < 550 ? "DT RESPETADO" : "DT DE PRIMER NIVEL"}</small></div>
         <button className="primary" onClick={() => setScreen("offers")}>ESCUCHAR OFERTAS <span>→</span></button>
       </section>}

@@ -24,6 +24,7 @@ export type Club = {
   boardPressure: number;
   budget: number;
   objective: string;
+  crestId: number;
   rivalId?: string;
 };
 
@@ -48,7 +49,26 @@ export type EventOutcome = {
   effects: Effects;
 };
 
-export type EventOption = { id: string; text: string; approach: "bold" | "calm" | "safe"; outcomes: EventOutcome[] };
+export type EventOption = { id: string; text: string; approach: "bold" | "calm" | "safe"; outcomes: EventOutcome[]; playerName?: string };
+
+export type StandingRow = {
+  id: string;
+  name: string;
+  shortName: string;
+  crestId: number;
+  strength: number;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  points: number;
+};
+
+export type PlayerScorer = { name: string; position: string; goals: number; weight: number };
+export type TransferCandidate = { id: string; name: string; age: number; position: string; profile: string; cost: number; strength: number; risk: number };
+export type ClubOffer = { club: Club; kind: "renewal" | "new"; reason: string };
 
 export type GameEvent = {
   id: string;
@@ -87,6 +107,11 @@ export type Season = {
   eventCount: number;
   seenEvents: string[];
   moments: string[];
+  standings: StandingRow[];
+  scorers: PlayerScorer[];
+  transferCandidates: TransferCandidate[];
+  preseasonDone: boolean;
+  squadStrengthModifier: number;
 };
 
 export type SeasonRecord = {
@@ -100,10 +125,12 @@ export type SeasonRecord = {
   drawn: number;
   lost: number;
   story: string;
+  objectiveMet: boolean;
+  topScorers: PlayerScorer[];
 };
 
 export type CareerState = {
-  version: 1;
+  version: 2;
   seed: number;
   rngState: number;
   manager: Manager;
@@ -117,4 +144,3 @@ export type CareerState = {
 export type MeaningfulMoment =
   | { type: "event"; event: GameEvent; state: CareerState }
   | { type: "season_finished"; state: CareerState };
-

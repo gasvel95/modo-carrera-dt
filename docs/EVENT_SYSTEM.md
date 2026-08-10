@@ -4,6 +4,6 @@ Los eventos contienen identidad, categoría, nivel, semana mínima, condición, 
 
 Cada opción ofrece outcomes positivos, neutrales y negativos. Antes del sorteo se ajustan probabilidades por liderazgo del DT y presión del club; luego se normalizan. Los efectos cambian moral, armonía, hinchas, dirigencia, presión, respeto y rendimiento futuro.
 
-El catálogo inicial genera 120 variantes desde diez arquetipos: vestuario, mercado, dirigentes, hinchas, deportivo, medios, lesiones, institucional, juveniles y carrera. Es una base de cobertura; el roadmap contempla reemplazar variantes repetidas por escritura única y cadenas diferidas.
+El catálogo usa situaciones escritas individualmente: pedidos de titularidad, referentes que desafían al DT, disputas por penales, disciplina, contratos, ventas, juveniles, filtraciones, lesiones, clásicos y presión institucional. Cada evento tiene opciones propias; no se generan títulos numerados ni capítulos repetidos.
 
 Los conflictos institucionales y de grupos organizados son ficción explícita dentro de la partida. No se atribuyen delitos, conducta o rasgos personales a personas reales.

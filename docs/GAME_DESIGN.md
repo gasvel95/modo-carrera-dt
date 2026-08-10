@@ -14,7 +14,9 @@ El jugador no dirige partidos: dirige una carrera. Una temporada avanza sola has
 - Tres ofertas dinámicas de clubes reales con ratings ficticios de juego.
 - Liga agregada de 18 equipos y temporada de 27 o 38 fechas.
 - Partidos internos, tabla aproximada, forma, moral, presión, hinchas y dirigencia.
-- 120 instancias de evento data-driven derivadas de diez arquetipos.
+- Eventos escritos individualmente con opciones específicas, actores del plantel y hasta cuatro decisiones.
+- Mercado obligatorio de pretemporada con cuatro perfiles probabilísticos.
+- Tabla completa de 18 equipos y goleadores individuales por temporada.
 - Decisiones con tres enfoques y outcomes no deterministas.
 - Resumen narrativo, reputación, títulos, ascensos e historial.
 - Guardado local automático y carreras de múltiples temporadas.
@@ -29,4 +31,4 @@ El jugador no dirige partidos: dirige una carrera. Una temporada avanza sola has
 
 ## Fuera del slice
 
-Formatos reales completos, planteles reales, copas continentales, mercado con futbolistas individuales, despidos a mitad de año y tarjeta compartible quedan para iteraciones posteriores.
+Formatos federales reales completos, copas continentales, planteles reales completos, despidos a mitad de año y tarjeta compartible quedan para iteraciones posteriores.
