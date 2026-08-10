@@ -159,6 +159,8 @@ export type SeasonRecord = {
   promotedTo?: string;
   cups: CupRun[];
   contractTerminated: boolean;
+  terminationRisk: number;
+  boardDecision: string;
 };
 
 export type CareerEnding = {
@@ -171,7 +173,7 @@ export type CareerEnding = {
 };
 
 export type CareerState = {
-  version: 6;
+  version: 7;
   seed: number;
   rngState: number;
   manager: Manager;
@@ -185,7 +187,7 @@ export type CareerState = {
   offerHistory: Array<{ year: number; clubIds: string[] }>;
   clubIdolatry: Record<string, number>;
   clubSeasons: Record<string, number>;
-  achievements: { leagueTitles: number; libertadoresTitles: number };
+  achievements: { leagueTitles: number; copaArgentinaTitles: number; libertadoresTitles: number; sudamericanaTitles: number };
   ending?: CareerEnding;
 };
 

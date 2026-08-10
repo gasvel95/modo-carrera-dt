@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import test from "node:test";
 import { advanceUntilNextMeaningfulMoment, canMoveToEurope, confirmSeasonTactics, createCareer, endCareer, finishSeason, generateOffers, resolveEvent, startSeason } from "../src/game-engine/careerEngine.ts";
 import { EVENTS } from "../src/data/events.ts";
@@ -33,13 +34,51 @@ test("a season begins with a four-player transfer decision", () => {
     assert.equal(moment.event.category, "transfer");
     assert.equal(moment.event.options.length, 4);
     assert.equal(new Set(moment.event.options.map((item) => item.text)).size, 4);
+    assert.ok(moment.event.options.every((item) => !/US\$|\$\d|K\b/.test(item.text)));
   }
+});
+
+test("board relationship and idolatry change dismissal risk", () => {
+  const finishProfile = (boardTrust: number, idolatry: number, pressure: number) => {
+    const career = createCareer(manager, 303); career.clubIdolatry.ituzaingo = idolatry;
+    let state = startSeason(career, "ituzaingo"); state.season!.position = 18; state.season!.boardTrust = boardTrust; state.season!.pressure = pressure;
+    return finishSeason(state).history[0];
+  };
+  const protectedIdol = finishProfile(92, 90, 15); const isolatedManager = finishProfile(8, 0, 90);
+  assert.ok(protectedIdol.terminationRisk < isolatedManager.terminationRisk);
+  let retainedDespiteMissing = false;
+  for (let seed = 100000; seed <= 100020; seed++) { const career = createCareer(manager, seed); career.clubIdolatry.ituzaingo = 90; let state = startSeason(career, "ituzaingo"); state.season!.position = 18; state.season!.boardTrust = 92; state.season!.pressure = 15; retainedDespiteMissing ||= !finishSeason(state).history[0].contractTerminated; }
+  assert.equal(retainedDespiteMissing, true);
+});
+
+test("a failed signing damages the relationship with the board", () => {
+  let foundFailure = false;
+  for (let seed = 1; seed < 80 && !foundFailure; seed++) {
+    let state = startSeason(createCareer(manager, seed), "ituzaingo"); const market = advanceUntilNextMeaningfulMoment(state); if (market.type !== "event") continue;
+    state = resolveEvent(market.state, market.event, market.event.options[0]).state;
+    for (let guard = 0; guard < 8; guard++) {
+      const moment = advanceUntilNextMeaningfulMoment(state); state = moment.state;
+      if (moment.type === "delayed_outcome") { if (moment.outcome.tone === "negative") { assert.ok((state.season?.boardTrust ?? 100) <= 50); foundFailure = true; } break; }
+      if (moment.type === "event") state = resolveEvent(state, moment.event, moment.event.options[0]).state;
+    }
+  }
+  assert.equal(foundFailure, true);
+});
+
+test("winning Copa Argentina grants the next Libertadores place", () => {
+  let state = startSeason(createCareer(manager, 404), "ituzaingo"); state.season!.position = 5; state.season!.cups[0].status = "champion"; state.season!.cups[0].stage = "CAMPEÓN"; state = finishSeason(state);
+  const next = startSeason(state, "ituzaingo");
+  assert.ok(next.season?.cups.some((cup) => cup.name === "Copa Libertadores"));
+});
+
+test("trophy artwork is bundled locally", () => {
+  for (const file of ["liga-profesional.png", "copa-argentina.png", "libertadores.png"]) assert.equal(existsSync(`public/trophies/${file}`), true);
 });
 
 test("transfer names vary between seasons", () => {
   const career = createCareer(manager, 991);
   const first = startSeason(career, "ituzaingo").season!.transferCandidates.map((player) => player.name);
-  career.history.push({ year: 2026, club: "Ituzaingó", division: "Primera C", position: 8, outcome: "Objetivo cumplido", played: 34, won: 12, drawn: 10, lost: 12, story: "", objectiveMet: true, topScorers: [], cups: [], contractTerminated: false });
+  career.history.push({ year: 2026, club: "Ituzaingó", division: "Primera C", position: 8, outcome: "Objetivo cumplido", played: 34, won: 12, drawn: 10, lost: 12, story: "", objectiveMet: true, topScorers: [], cups: [], contractTerminated: false, terminationRisk: .1, boardDecision: "Continuidad" });
   const second = startSeason(career, "ituzaingo").season!.transferCandidates.map((player) => player.name);
   assert.notDeepEqual(first, second);
 });
@@ -104,7 +143,7 @@ test("career events cannot repeat during four consecutive seasons", () => {
 
 test("offers rotate away from the previous market", () => {
   let state = createCareer(manager, 8008); state.clubId = "ituzaingo";
-  state.history.push({ year: 2026, club: "Ituzaingó", division: "Primera C", position: 4, outcome: "Gran campaña", played: 34, won: 17, drawn: 8, lost: 9, story: "", objectiveMet: true, topScorers: [], cups: [], contractTerminated: false });
+  state.history.push({ year: 2026, club: "Ituzaingó", division: "Primera C", position: 4, outcome: "Gran campaña", played: 34, won: 17, drawn: 8, lost: 9, story: "", objectiveMet: true, topScorers: [], cups: [], contractTerminated: false, terminationRisk: .1, boardDecision: "Continuidad" });
   const first = generateOffers(state);
   state = startSeason(state, first[0].club.id); state.season!.position = 5; state = finishSeason(state);
   const second = generateOffers(state);
@@ -155,7 +194,7 @@ test("idolatry persists by club and lowers starting pressure", () => {
 test("career can end by retirement or a move to Europe", () => {
   let state = createCareer(manager, 100); const retired = endCareer(state, "retirement");
   assert.equal(retired.ending?.reason, "retirement");
-  state.achievements = { leagueTitles: 1, libertadoresTitles: 1 };
+  state.achievements = { leagueTitles: 1, copaArgentinaTitles: 0, libertadoresTitles: 1, sudamericanaTitles: 0 };
   assert.equal(canMoveToEurope(state), true);
   assert.equal(endCareer(state, "europe").ending?.reason, "europe");
 });
@@ -186,7 +225,7 @@ test("a defensive signing gets a fit bonus when defense is the weakness", () => 
 test("successful campaign includes renewal and upward offers", () => {
   const state = createCareer(manager, 789);
   state.clubId = "ituzaingo";
-  state.history.push({ year: 2026, club: "Ituzaingó", division: "Primera C", position: 3, outcome: "Gran campaña", played: 34, won: 18, drawn: 8, lost: 8, story: "Buena campaña", objectiveMet: true, topScorers: [], cups: [], contractTerminated: false });
+  state.history.push({ year: 2026, club: "Ituzaingó", division: "Primera C", position: 3, outcome: "Gran campaña", played: 34, won: 18, drawn: 8, lost: 8, story: "Buena campaña", objectiveMet: true, topScorers: [], cups: [], contractTerminated: false, terminationRisk: .1, boardDecision: "Continuidad" });
   const offers = generateOffers(state);
   assert.equal(offers.length, 3);
   assert.ok(offers.some((offer) => offer.kind === "renewal" && offer.club.id === "ituzaingo"));

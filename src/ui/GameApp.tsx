@@ -6,7 +6,7 @@ import { getClub } from "../data/clubs";
 import { crestUrl } from "../data/divisions";
 import type { CareerState, EventOutcome, Formation, GameEvent, Philosophy, TacticalApproach } from "../domain/game";
 
-const STORAGE_KEY = "convertite-en-dt:carrera:v6";
+const STORAGE_KEY = "convertite-en-dt:carrera:v7";
 const philosophies: Philosophy[] = ["Ofensivo", "Defensivo", "Equilibrado", "Motivador", "Formador", "Pragmático"];
 const approaches: TacticalApproach[] = ["Ofensivo", "Equilibrado", "Defensivo"];
 const formations: Formation[] = ["4-3-3", "4-2-3-1", "4-4-2", "3-5-2", "5-3-2"];
@@ -16,8 +16,18 @@ function Meter({ label, value }: { label: string; value: number }) {
   return <div className="meter"><div className="meter-head"><span>{label}</span><strong>{Math.round(value)}%</strong></div><div className="meter-track"><span style={{ width: `${value}%` }} /></div></div>;
 }
 
-function Brand() {
-  return <header className="brand"><div className="brand-mark">DT</div><div><span>UNA CARRERA. MIL HISTORIAS.</span><strong>CONVERTITE EN DT</strong></div></header>;
+function careerStats(state: CareerState | null) {
+  const completed = state?.history.reduce((totals, record) => ({ played: totals.played + record.played + record.cups.reduce((n, cup) => n + cup.played, 0), won: totals.won + record.won + record.cups.reduce((n, cup) => n + cup.won, 0), drawn: totals.drawn + record.drawn + record.cups.reduce((n, cup) => n + cup.drawn, 0), lost: totals.lost + record.lost + record.cups.reduce((n, cup) => n + cup.lost, 0) }), { played: 0, won: 0, drawn: 0, lost: 0 }) ?? { played: 0, won: 0, drawn: 0, lost: 0 };
+  const current = state?.season; const cups = current?.cups ?? [];
+  const played = completed.played + (current?.played ?? 0) + cups.reduce((n, cup) => n + cup.played, 0); const won = completed.won + (current?.won ?? 0) + cups.reduce((n, cup) => n + cup.won, 0); const drawn = completed.drawn + (current?.drawn ?? 0) + cups.reduce((n, cup) => n + cup.drawn, 0); const lost = completed.lost + (current?.lost ?? 0) + cups.reduce((n, cup) => n + cup.lost, 0);
+  return { played, won, drawn, lost, effectiveness: played ? Math.round(((won * 3 + drawn) / (played * 3)) * 100) : 0 };
+}
+
+const trophyImage = (name: string) => name.includes("Libertadores") ? "/trophies/libertadores.png" : name.includes("Argentina") ? "/trophies/copa-argentina.png" : "/trophies/liga-profesional.png";
+
+function Brand({ state }: { state: CareerState | null }) {
+  const stats = careerStats(state);
+  return <header className="brand"><div className="brand-mark">DT</div><div className="brand-copy"><span>UNA CARRERA. MIL HISTORIAS.</span><strong>CONVERTITE EN DT</strong></div>{state && <div className="career-summary" aria-label="Estadísticas totales de carrera"><div><span>PJ</span><strong>{stats.played}</strong></div><div><span>G</span><strong>{stats.won}</strong></div><div><span>E</span><strong>{stats.drawn}</strong></div><div><span>P</span><strong>{stats.lost}</strong></div><div><span>EFECT.</span><strong>{stats.effectiveness}%</strong></div><div className="header-trophies"><img src="/trophies/liga-profesional.png" alt="Trofeos ganados" /><span>TROFEOS</span><strong>{state.trophies}</strong></div></div>}</header>;
 }
 
 function FormDot({ result }: { result: "W" | "D" | "L" }) {
@@ -43,7 +53,7 @@ export function GameApp() {
     if (!saved) return;
     try {
       const parsed = JSON.parse(saved) as CareerState;
-      if (parsed.version !== 6) { localStorage.removeItem(STORAGE_KEY); return; }
+      if (parsed.version !== 7) { localStorage.removeItem(STORAGE_KEY); return; }
       // Restores an external browser snapshot after hydration.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setState(parsed);
@@ -91,7 +101,7 @@ export function GameApp() {
   return (
     <main className="game-shell">
       <div className="paper-noise" aria-hidden="true" />
-      <Brand />
+      <Brand state={state} />
       {state && !state.ending && <nav className="career-nav" aria-label="Carrera"><button onClick={() => setScreen(state.season ? state.season.tacticsConfirmed ? "season" : "report" : "offers")}>PARTIDA</button><button onClick={() => setScreen("history")}>HISTORIAL <span>{state.history.length}</span></button><button onClick={() => setScreen("retire")}>RETIRO</button></nav>}
 
       {screen === "intro" && <section className="intro-grid">
@@ -171,10 +181,11 @@ export function GameApp() {
       </section>}
 
       {screen === "summary" && state && last && <section className="summary-view">
+        {(last.position === 1 || last.cups.some((cup) => cup.status === "champion")) && <section className="champion-celebration"><div className="confetti" aria-hidden="true">{Array.from({ length: 18 }, (_, index) => <i key={index} style={{ left: `${(index * 37) % 100}%`, animationDelay: `${(index % 6) * .12}s` }} />)}</div><p>VUELTA OLÍMPICA</p><h2>¡CAMPEÓN!</h2><div className="won-trophies">{last.position === 1 && <div><img src={trophyImage(last.division)} alt={`Trofeo de ${last.division}`} /><strong>{last.division}</strong></div>}{last.cups.filter((cup) => cup.status === "champion").map((cup) => <div key={cup.name}><img src={trophyImage(cup.name)} alt={`Trofeo de ${cup.name}`} /><strong>{cup.name}</strong></div>)}</div></section>}
         <div className="summary-kicker">TEMPORADA {last.year} · INFORME FINAL</div><div className="summary-result"><div><p>{last.club}</p><h2>{last.outcome}</h2><span>{last.division}{last.promotedTo ? ` → ${last.promotedTo}` : ""}</span></div><strong>{last.position}°</strong></div>
         <div className="record-line"><div><span>PJ</span><strong>{last.played}</strong></div><div><span>PG</span><strong>{last.won}</strong></div><div><span>PE</span><strong>{last.drawn}</strong></div><div><span>PP</span><strong>{last.lost}</strong></div></div>
         <div className={`objective-badge ${last.objectiveMet ? "met" : "missed"}`}><span>OBJETIVO DE LA DIRIGENCIA</span><strong>{last.objectiveMet ? "CUMPLIDO" : "INCUMPLIDO"}</strong></div>
-        {last.contractTerminated && <div className="termination-notice"><span>DECISIÓN DE LA DIRIGENCIA</span><strong>CONTRATO RESCINDIDO</strong><p>El club dio por terminado tu vínculo. La próxima temporada sólo podrás aceptar una oferta de otra institución.</p></div>}
+        <div className={`board-verdict ${last.contractTerminated ? "terminated" : "retained"}`}><span>DECISIÓN DE LA JUNTA · RIESGO DE RESCISIÓN {Math.round(last.terminationRisk * 100)}%</span><strong>{last.contractTerminated ? "CONTRATO RESCINDIDO" : "CONTINUIDAD RATIFICADA"}</strong><p>{last.boardDecision}</p></div>
         <section className="summary-cups"><div className="section-number">CAMPAÑA EN COPAS</div>{last.cups.map((cup) => <div key={cup.name}><span><strong>{cup.name}</strong><small>{cup.played} PJ · {cup.won} G · {cup.drawn} E · {cup.lost} P</small></span><b className={cup.status}>{cup.stage}</b></div>)}</section>
         <section className="season-scorers"><div className="section-number">GOLEADORES DEL EQUIPO</div>{last.topScorers.map((player, index) => <div key={player.name}><span><b>{index + 1}</b>{player.name}<small>{player.position}</small></span><strong>{player.goals} <small>GOLES</small></strong></div>)}</section>
         <blockquote>“{last.story}”</blockquote><div className="career-gain"><span>REPUTACIÓN</span><strong>{state.manager.reputation}</strong><small>{state.manager.reputation < 100 ? "DT DESCONOCIDO" : state.manager.reputation < 250 ? "DT DEL ASCENSO" : state.manager.reputation < 550 ? "DT RESPETADO" : "DT DE PRIMER NIVEL"}</small></div>
@@ -191,7 +202,7 @@ export function GameApp() {
       {screen === "retire" && state && <section className="retire-view"><p className="eyebrow">DECISIÓN IRREVERSIBLE</p><h2>¿ES EL MOMENTO<br />DE PARAR?</h2><p>Podés retirarte voluntariamente en cualquier temporada. Tu historial, títulos, ascensos e idolatría quedarán como balance definitivo.</p><div className="retire-facts"><div><span>EDAD</span><strong>{state.manager.age}</strong></div><div><span>TEMPORADAS</span><strong>{state.history.length}</strong></div><div><span>TÍTULOS</span><strong>{state.trophies}</strong></div></div><button className="primary" onClick={() => completeCareer("retirement")}>CONFIRMAR RETIRO <span>→</span></button><button className="text-button" onClick={() => setScreen(state.season ? state.season.tacticsConfirmed ? "season" : "report" : "offers")}>Todavía no. Seguir dirigiendo.</button></section>}
 
       {screen === "ending" && state?.ending && <section className={`ending-view ${state.ending.reason}`}><p className="eyebrow">FINAL DE CARRERA · {state.ending.year}</p><h1>{state.ending.title}</h1><p>{state.ending.description}</p><div className="ending-record"><div><span>EDAD FINAL</span><strong>{state.ending.age}</strong></div><div><span>TEMPORADAS</span><strong>{state.history.length}</strong></div><div><span>TÍTULOS</span><strong>{state.trophies}</strong></div><div><span>ASCENSOS</span><strong>{state.promotions}</strong></div></div><blockquote>“{state.manager.name}: una carrera que empezó sin nombre y terminó dejando una historia propia.”</blockquote><button className="primary light" onClick={restart}>EMPEZAR OTRA HISTORIA <span>→</span></button></section>}
-      <footer><span>CONVERTITE EN DT · VERTICAL SLICE</span><span>LOS PARTIDOS OCURREN. VOS APARECÉS CUANDO IMPORTA.</span></footer>
+      <footer><span>CONVERTITE EN DT · LOS PARTIDOS OCURREN. VOS APARECÉS CUANDO IMPORTA.</span><span className="image-credits">Trofeos: <a href="https://commons.wikimedia.org/wiki/File:LigaProfesionalArg.png">Liga (CC0)</a> · <a href="https://commons.wikimedia.org/wiki/File:Trof%C3%A9u_da_Copa_da_Argentina.png">Copa Argentina (Taf0723, CC BY-SA 4.0)</a> · <a href="https://commons.wikimedia.org/wiki/File:328-3287452_copa-libertadores-primer-trofeo-hd-png-download.png">Libertadores (Mathiaseditorxd, CC BY-SA 4.0)</a></span></footer>
     </main>
   );
 }
