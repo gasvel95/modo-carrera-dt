@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { generateOffers, advanceUntilNextMeaningfulMoment, createCareer, finishSeason, resolveEvent, startSeason } from "../game-engine/careerEngine";
+import { generateOffers, advanceUntilNextMeaningfulMoment, confirmSeasonTactics, createCareer, finishSeason, resolveEvent, startSeason } from "../game-engine/careerEngine";
 import { getClub } from "../data/clubs";
 import { crestUrl } from "../data/divisions";
-import type { CareerState, EventOutcome, GameEvent, Philosophy } from "../domain/game";
+import type { CareerState, EventOutcome, Formation, GameEvent, Philosophy, TacticalApproach } from "../domain/game";
 
-const STORAGE_KEY = "convertite-en-dt:carrera:v3";
+const STORAGE_KEY = "convertite-en-dt:carrera:v4";
 const philosophies: Philosophy[] = ["Ofensivo", "Defensivo", "Equilibrado", "Motivador", "Formador", "Pragmático"];
-type Screen = "intro" | "offers" | "season" | "event" | "outcome" | "summary" | "history";
+const approaches: TacticalApproach[] = ["Ofensivo", "Equilibrado", "Defensivo"];
+const formations: Formation[] = ["4-3-3", "4-2-3-1", "4-4-2", "3-5-2", "5-3-2"];
+type Screen = "intro" | "offers" | "report" | "season" | "event" | "outcome" | "summary" | "history";
 
 function Meter({ label, value }: { label: string; value: number }) {
   return <div className="meter"><div className="meter-head"><span>{label}</span><strong>{Math.round(value)}%</strong></div><div className="meter-track"><span style={{ width: `${value}%` }} /></div></div>;
@@ -32,6 +34,8 @@ export function GameApp() {
   const [activeEvent, setActiveEvent] = useState<GameEvent | null>(null);
   const [outcome, setOutcome] = useState<EventOutcome | null>(null);
   const [busy, setBusy] = useState(false);
+  const [approach, setApproach] = useState<TacticalApproach | null>(null);
+  const [formation, setFormation] = useState<Formation | null>(null);
   const [form, setForm] = useState({ name: "", age: "38", nationality: "Argentina", supportedClub: "", philosophy: "Equilibrado" as Philosophy });
 
   useEffect(() => {
@@ -39,11 +43,11 @@ export function GameApp() {
     if (!saved) return;
     try {
       const parsed = JSON.parse(saved) as CareerState;
-      if (parsed.version !== 3) { localStorage.removeItem(STORAGE_KEY); return; }
+      if (parsed.version !== 4) { localStorage.removeItem(STORAGE_KEY); return; }
       // Restores an external browser snapshot after hydration.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setState(parsed);
-      setScreen(parsed.season ? "season" : parsed.history.length ? "offers" : "offers");
+      setScreen(parsed.season ? parsed.season.tacticsConfirmed ? "season" : "report" : "offers");
     } catch { localStorage.removeItem(STORAGE_KEY); }
   }, []);
 
@@ -57,7 +61,8 @@ export function GameApp() {
     setState(career); setScreen("offers");
   };
 
-  const chooseClub = (clubId: string) => { if (!state) return; setState(startSeason(state, clubId)); setScreen("season"); };
+  const chooseClub = (clubId: string) => { if (!state) return; setState(startSeason(state, clubId)); setApproach(null); setFormation(null); setScreen("report"); };
+  const confirmTactics = () => { if (!state?.season || !approach || !formation) return; setState(confirmSeasonTactics(state, approach, formation)); setScreen("season"); };
   const advance = () => {
     if (!state?.season || busy) return;
     setBusy(true);
@@ -85,7 +90,7 @@ export function GameApp() {
     <main className="game-shell">
       <div className="paper-noise" aria-hidden="true" />
       <Brand />
-      {state && <nav className="career-nav" aria-label="Carrera"><button onClick={() => setScreen(state.season ? "season" : "offers")}>PARTIDA</button><button onClick={() => setScreen("history")}>HISTORIAL <span>{state.history.length}</span></button></nav>}
+      {state && <nav className="career-nav" aria-label="Carrera"><button onClick={() => setScreen(state.season ? state.season.tacticsConfirmed ? "season" : "report" : "offers")}>PARTIDA</button><button onClick={() => setScreen("history")}>HISTORIAL <span>{state.history.length}</span></button></nav>}
 
       {screen === "intro" && <section className="intro-grid">
         <div className="hero-copy">
@@ -115,6 +120,19 @@ export function GameApp() {
           <dl><div><dt>OBJETIVO</dt><dd>{item.objective}</dd></div><div><dt>PLANTEL</dt><dd>{"●".repeat(Math.round(item.squadStrength / 20))}{"○".repeat(5 - Math.round(item.squadStrength / 20))}</dd></div><div><dt>PRESIÓN</dt><dd>{item.fanPressure > 65 ? "ALTA" : item.fanPressure > 45 ? "MEDIA" : "BAJA"}</dd></div></dl>
           <button className="choice" onClick={() => chooseClub(item.id)}>{kind === "renewal" ? "RENOVAR CONTRATO" : "FIRMAR CONTRATO"} <span>→</span></button>
         </article>)}</div>
+      </section>}
+
+      {screen === "report" && state?.season && club && <section className="report-view">
+        <div className="report-heading"><div><p className="eyebrow">PRETEMPORADA · {state.season.year}</p><h2>INFORME DEL<br />PLANTEL.</h2></div><div className="report-club"><Crest crestId={club.crestId} name={club.name} /><strong>{club.name}</strong><span>{state.season.division}</span></div></div>
+        <div className="report-grid">
+          <article className="squad-analysis"><div className="section-number">DIAGNÓSTICO DEL CUERPO TÉCNICO</div>
+            <div className="line-rating"><span>ATAQUE</span><div><i style={{ width: `${state.season.squadReport.attack}%` }} /></div><strong>{state.season.squadReport.attack}</strong></div>
+            <div className="line-rating"><span>MEDIOCAMPO</span><div><i style={{ width: `${state.season.squadReport.midfield}%` }} /></div><strong>{state.season.squadReport.midfield}</strong></div>
+            <div className="line-rating"><span>DEFENSA</span><div><i style={{ width: `${state.season.squadReport.defense}%` }} /></div><strong>{state.season.squadReport.defense}</strong></div>
+            <div className="report-notes"><div><span>PUNTOS FUERTES</span>{state.season.squadReport.strengths.map((item) => <p key={item}>+ {item}</p>)}</div><div><span>PUNTOS BAJOS</span>{state.season.squadReport.weaknesses.map((item) => <p key={item}>− {item}</p>)}</div></div>
+          </article>
+          <article className="tactics-card"><div className="section-number">TU PLAN PARA LA TEMPORADA</div><label>ENFOQUE DE JUEGO</label><div className="tactic-options">{approaches.map((item) => <button key={item} className={approach === item ? "selected" : ""} onClick={() => setApproach(item)}>{item}</button>)}</div><label>FORMACIÓN BASE</label><div className="formation-options">{formations.map((item) => <button key={item} className={formation === item ? "selected" : ""} onClick={() => setFormation(item)}>{item}</button>)}</div><p className="tactics-note">La identidad elegida se mantendrá durante esta campaña y afectará el rendimiento del equipo.</p><button className="primary" disabled={!approach || !formation} onClick={confirmTactics}>CONFIRMAR PLAN <span>→</span></button></article>
+        </div>
       </section>}
 
       {screen === "season" && state?.season && club && <section className="season-view">

@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { advanceUntilNextMeaningfulMoment, createCareer, finishSeason, generateOffers, resolveEvent, startSeason } from "../src/game-engine/careerEngine.ts";
+import { advanceUntilNextMeaningfulMoment, confirmSeasonTactics, createCareer, finishSeason, generateOffers, resolveEvent, startSeason } from "../src/game-engine/careerEngine.ts";
 import { EVENTS } from "../src/data/events.ts";
+import { getClub } from "../src/data/clubs.ts";
 
 const manager = { name: "Test DT", age: 38, nationality: "Argentina", supportedClub: "Ninguno", philosophy: "Equilibrado" as const };
 
@@ -80,9 +81,49 @@ test("standings contain all teams and keep valid row totals", () => {
 });
 
 test("narrative catalog has distinct choices and no chapter suffixes", () => {
-  assert.ok(EVENTS.length >= 18);
+  assert.ok(EVENTS.length >= 30);
   assert.ok(EVENTS.every((item) => !/capítulo/i.test(item.title)));
   assert.ok(new Set(EVENTS.flatMap((item) => item.options.map((choice) => choice.text))).size > 45);
+});
+
+test("career events cannot repeat during four consecutive seasons", () => {
+  let state = createCareer(manager, 2408); const seen = new Set<string>();
+  for (let seasonIndex = 0; seasonIndex < 4; seasonIndex++) {
+    state = startSeason(state, seasonIndex ? generateOffers(state)[0].club.id : "ituzaingo");
+    let guard = 0;
+    while (state.season && guard++ < 20) {
+      const moment = advanceUntilNextMeaningfulMoment(state); state = moment.state;
+      if (moment.type === "event") {
+        if (moment.event.category !== "transfer") { assert.ok(!seen.has(moment.event.id)); seen.add(moment.event.id); }
+        state = resolveEvent(state, moment.event, moment.event.options[0]).state;
+      } else if (moment.type === "season_finished") { state = finishSeason(state); break; }
+    }
+  }
+  assert.ok(seen.size >= 6);
+});
+
+test("offers rotate away from the previous market", () => {
+  let state = createCareer(manager, 8008); state.clubId = "ituzaingo";
+  state.history.push({ year: 2026, club: "Ituzaingó", division: "Primera C", position: 4, outcome: "Gran campaña", played: 34, won: 17, drawn: 8, lost: 9, story: "", objectiveMet: true, topScorers: [] });
+  const first = generateOffers(state);
+  state = startSeason(state, first[0].club.id); state.season!.position = 5; state = finishSeason(state);
+  const second = generateOffers(state);
+  const oldOutsiders = new Set(first.filter((offer) => offer.club.id !== state.clubId).map((offer) => offer.club.id));
+  assert.ok(second.filter((offer) => offer.kind === "new").every((offer) => !oldOutsiders.has(offer.club.id)));
+});
+
+test("club ratings reflect hierarchy without determining results", () => {
+  assert.ok(getClub("river").squadStrength >= 90);
+  assert.ok(getClub("boca").squadStrength >= 90);
+  assert.ok(getClub("racing").squadStrength < getClub("river").squadStrength);
+});
+
+test("formation and approach create a hidden performance modifier", () => {
+  const base = startSeason(createCareer(manager, 4310), "river");
+  const aligned = confirmSeasonTactics(base, "Ofensivo", "4-3-3");
+  const mismatched = confirmSeasonTactics(base, "Defensivo", "3-5-2");
+  assert.equal(aligned.season?.tacticsConfirmed, true);
+  assert.ok((aligned.season?.tacticalModifier ?? 0) > (mismatched.season?.tacticalModifier ?? 0));
 });
 
 test("successful campaign includes renewal and upward offers", () => {

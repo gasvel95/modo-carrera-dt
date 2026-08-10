@@ -2,7 +2,7 @@ import { CLUBS, getClub } from "../data/clubs.ts";
 import { DIVISION_TEAMS, DIVISION_TIER, NEXT_DIVISION } from "../data/divisions.ts";
 import { EVENTS } from "../data/events.ts";
 import { FIRST_NAMES, LAST_NAMES, SQUAD_NAMES, TRANSFER_PROFILES } from "../data/players.ts";
-import type { CareerState, ClubOffer, Effects, EventOption, EventOutcome, GameEvent, Manager, MatchResult, MeaningfulMoment, PlayerScorer, Season, SeasonRecord, StandingRow } from "../domain/game.ts";
+import type { CareerState, ClubOffer, Effects, EventOption, EventOutcome, Formation, GameEvent, Manager, MatchResult, MeaningfulMoment, PlayerScorer, Season, SeasonRecord, StandingRow, TacticalApproach } from "../domain/game.ts";
 import { nextRandom, randomInt } from "./rng.ts";
 
 const clamp = (value: number, min = 0, max = 100) => Math.max(min, Math.min(max, value));
@@ -10,7 +10,7 @@ const money = (value: number) => `US$${Math.round(value / 1000)}K`;
 
 export function createCareer(manager: Omit<Manager, "reputation" | "leadership" | "respect">, seed = Date.now() >>> 0): CareerState {
   const philosophyLeadership = manager.philosophy === "Motivador" ? 68 : manager.philosophy === "Pragmático" ? 62 : 56;
-  return { version: 3, seed, rngState: seed || 1978, manager: { ...manager, reputation: 28, leadership: philosophyLeadership, respect: 42 }, history: [], trophies: 0, promotions: 0, clubDivisions: {} };
+  return { version: 4, seed, rngState: seed || 1978, manager: { ...manager, reputation: 28, leadership: philosophyLeadership, respect: 42 }, history: [], trophies: 0, promotions: 0, clubDivisions: {}, eventHistory: {}, offerHistory: [] };
 }
 
 const seededScore = (text: string, seed: number) => [...text].reduce((sum, char) => sum + char.charCodeAt(0) * 17, seed) % 997;
@@ -23,10 +23,12 @@ function clubForCareer(state: CareerState, clubId: string) {
 export function generateOffers(state: CareerState): ClubOffer[] {
   const current = state.clubId ? clubForCareer(state, state.clubId) : undefined;
   const last = state.history.at(-1);
+  const year = (last?.year ?? 2025) + 1;
+  const recentlyOffered = new Set(state.offerHistory.slice(-2).flatMap((entry) => entry.clubIds));
   if (!last) {
     return [...CLUBS]
-      .filter((club) => club.reputation <= 125)
-      .sort((a, b) => seededScore(a.id, state.rngState) - seededScore(b.id, state.rngState))
+      .filter((club) => club.reputation <= 125 && !recentlyOffered.has(club.id))
+      .sort((a, b) => seededScore(`${a.id}-${year}`, state.rngState) - seededScore(`${b.id}-${year}`, state.rngState))
       .slice(0, 3)
       .map((club) => ({ club, kind: "new", reason: "Primera oportunidad profesional" }));
   }
@@ -34,9 +36,10 @@ export function generateOffers(state: CareerState): ClubOffer[] {
   const noise = (seededScore(last.club, state.rngState) % 121) - 60;
   const performanceDelta = last.objectiveMet ? 125 + Math.max(0, 8 - last.position) * 9 : -70 - Math.max(0, last.position - 12) * 5;
   const target = Math.max(55, (current?.reputation ?? state.manager.reputation) + performanceDelta + noise);
-  const outsiders = CLUBS.map((club) => clubForCareer(state, club.id))
-    .filter((club) => club.id !== current?.id)
-    .sort((a, b) => Math.abs(a.reputation - target) - Math.abs(b.reputation - target) || seededScore(a.id, state.rngState) - seededScore(b.id, state.rngState));
+  let outsiders = CLUBS.map((club) => clubForCareer(state, club.id))
+    .filter((club) => club.id !== current?.id && !recentlyOffered.has(club.id));
+  if (outsiders.length < 3) outsiders = CLUBS.map((club) => clubForCareer(state, club.id)).filter((club) => club.id !== current?.id);
+  outsiders.sort((a, b) => (Math.abs(a.reputation - target) + seededScore(`${a.id}-${year}`, state.seed) % 150) - (Math.abs(b.reputation - target) + seededScore(`${b.id}-${year}`, state.seed) % 150));
   const offers: ClubOffer[] = [];
   if (current && last.objectiveMet) offers.push({ club: current, kind: "renewal", reason: `La dirigencia valora el ${last.position}° puesto y quiere continuidad` });
   const needed = 3 - offers.length;
@@ -80,19 +83,41 @@ function transferCandidates(clubId: string, budget: number, year: number, seed: 
 }
 
 export function startSeason(state: CareerState, clubId: string): CareerState {
+  const displayedOffers = generateOffers(state);
   const club = clubForCareer(state, clubId);
   const year = (state.history.at(-1)?.year ?? 2025) + 1;
   const teams = DIVISION_TEAMS[club.division] ?? DIVISION_TEAMS["Primera C"];
   const roster = teams.some((team) => team.id === club.id) ? teams : [...teams.slice(0, -1), { id: club.id, name: club.name, shortName: club.shortName, crestId: club.crestId, strength: club.squadStrength }];
   const standings = roster.map((team) => emptyRow(team.id === club.id ? { ...team, strength: club.squadStrength } : team));
+  const variance = (seededScore(`${clubId}-${year}-report`, state.seed) % 5) - 2;
+  const attack = clamp(club.attack + variance); const midfield = clamp(club.midfield - Math.sign(variance)); const defense = clamp(club.defense - variance);
+  const lines = [{ label: "ataque", value: attack }, { label: "mediocampo", value: midfield }, { label: "defensa", value: defense }].sort((a, b) => b.value - a.value);
   const season: Season = {
     year, clubId, division: club.division, week: 0, totalWeeks: 34, position: 1, teams: standings.length,
     points: 0, played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, form: [],
     morale: 58, harmony: 60, fanApproval: 52, boardTrust: 61, pressure: club.fanPressure / 3,
     performanceModifier: 0, eventCount: 0, seenEvents: [], moments: [], standings,
     scorers: initialScorers(clubId), transferCandidates: transferCandidates(clubId, club.budget, year, state.rngState), preseasonDone: false, squadStrengthModifier: 0, pendingTransfers: [],
+    squadReport: { attack, midfield, defense, strengths: [`El ${lines[0].label} es la línea más confiable`, attack >= 82 ? "Hay desequilibrio individual en los últimos metros" : midfield >= 76 ? "El equipo puede sostener la posesión" : "El grupo compite bien en duelos"], weaknesses: [`El ${lines[2].label} ofrece menos garantías`, defense < 65 ? "Falta profundidad defensiva" : attack < 65 ? "Cuesta transformar dominio en goles" : "El recambio es irregular"] },
+    tacticalModifier: 0, tacticsConfirmed: false,
   };
-  return { ...state, clubId, season };
+  const offerHistory = [...state.offerHistory, { year, clubIds: displayedOffers.map((offer) => offer.club.id) }].slice(-4);
+  return { ...state, clubId, season, offerHistory };
+}
+
+export function confirmSeasonTactics(input: CareerState, tacticalApproach: TacticalApproach, formation: Formation): CareerState {
+  const state = structuredClone(input); const season = state.season!; const { attack, midfield, defense } = season.squadReport;
+  const profiles: Record<Formation, [number, number, number]> = {
+    "4-3-3": [.5, .3, .2], "4-2-3-1": [.38, .37, .25], "4-4-2": [.34, .32, .34], "3-5-2": [.34, .45, .21], "5-3-2": [.22, .3, .48],
+  };
+  const [aw, mw, dw] = profiles[formation];
+  const formationScore = attack * aw + midfield * mw + defense * dw;
+  const approachScore = tacticalApproach === "Ofensivo" ? attack * .62 + midfield * .28 + defense * .1 : tacticalApproach === "Defensivo" ? defense * .62 + midfield * .28 + attack * .1 : (attack + midfield + defense) / 3;
+  const coherence = tacticalApproach === "Ofensivo" && (formation === "4-3-3" || formation === "4-2-3-1") ? 3 : tacticalApproach === "Defensivo" && (formation === "5-3-2" || formation === "4-4-2") ? 3 : tacticalApproach === "Equilibrado" && (formation === "4-4-2" || formation === "4-2-3-1") ? 2 : 0;
+  const squadBaseline = (attack + midfield + defense) / 3;
+  season.tacticalModifier = clamp((formationScore * .55 + approachScore * .45 + coherence - squadBaseline) / 80, -.055, .065);
+  season.tacticalApproach = tacticalApproach; season.formation = formation; season.tacticsConfirmed = true;
+  return state;
 }
 
 function transferEvent(state: CareerState): GameEvent {
@@ -117,7 +142,7 @@ function matchProbability(state: CareerState) {
   const philosophy = state.manager.philosophy;
   const philosophyBoost = philosophy === "Ofensivo" || philosophy === "Motivador" ? .025 : philosophy === "Pragmático" ? .018 : .01;
   const effectiveStrength = club.squadStrength + season.squadStrengthModifier;
-  const score = .34 + (effectiveStrength - 50) / 180 + (season.morale - 50) / 520 + season.performanceModifier + state.manager.reputation / 9000 + philosophyBoost - season.pressure / 1200;
+  const score = .34 + (effectiveStrength - 50) / 180 + (season.morale - 50) / 520 + season.performanceModifier + season.tacticalModifier + state.manager.reputation / 9000 + philosophyBoost - season.pressure / 1200;
   return clamp(score, .18, .66);
 }
 
@@ -181,9 +206,9 @@ function materializeEvent(event: GameEvent, season: Season, rng: number): [GameE
 
 function eligibleEvent(state: CareerState): GameEvent | undefined {
   const season = state.season!;
-  if (season.eventCount >= 6 || season.week < 3) return undefined;
+  if (season.eventCount >= 4 || season.week < 3) return undefined;
   const losses = season.form.filter((result) => result === "L").length;
-  const pool = EVENTS.filter((event) => !season.seenEvents.includes(event.id) && season.week >= event.minWeek && (
+  const pool = EVENTS.filter((event) => !season.seenEvents.includes(event.id) && (!state.eventHistory[event.id] || season.year - state.eventHistory[event.id] >= 6) && season.week >= event.minWeek && (
     event.condition === "any" || (event.condition === "crisis" && (losses >= 3 || season.pressure > 62)) ||
     (event.condition === "low_morale" && season.morale < 50) || (event.condition === "good_form" && season.form.filter((r) => r === "W").length >= 3)
   ));
@@ -209,6 +234,7 @@ export function advanceUntilNextMeaningfulMoment(input: CareerState): Meaningful
     const event = eligibleEvent(state);
     if (event) {
       state.season = { ...state.season!, eventCount: state.season!.eventCount + 1, seenEvents: [...state.season!.seenEvents, event.id] };
+      state.eventHistory[event.id] = state.season.year;
       return { type: "event", event, state };
     }
   }

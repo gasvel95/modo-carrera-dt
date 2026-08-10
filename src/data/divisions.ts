@@ -2,10 +2,10 @@ export type DivisionTeam = { id: string; name: string; shortName: string; crestI
 
 export const DIVISION_TEAMS: Record<string, DivisionTeam[]> = {
   "Liga Profesional": [
-    ["river", "River Plate", "RIV", 3211, 92], ["racing", "Racing Club", "RAC", 3215, 86], ["lanus", "Lanús", "LAN", 3218, 77], ["boca", "Boca Juniors", "BOC", 3202, 90],
-    ["independiente", "Independiente", "IND", 3209, 82], ["san_lorenzo", "San Lorenzo", "CAS", 3201, 80], ["velez", "Vélez Sarsfield", "VEL", 3208, 82], ["argentinos", "Argentinos Juniors", "ARG", 3216, 78],
-    ["platense", "Platense", "PLA", 36837, 72], ["estudiantes", "Estudiantes LP", "EST", 3206, 83], ["gimnasia", "Gimnasia LP", "GEL", 3205, 73], ["central", "Rosario Central", "CEN", 3217, 79],
-    ["newells", "Newell's Old Boys", "NOB", 3212, 76], ["talleres", "Talleres", "TAL", 3210, 84], ["belgrano", "Belgrano", "BEL", 3203, 76], ["defensa", "Defensa y Justicia", "DYJ", 36839, 75],
+    ["river", "River Plate", "RIV", 3211, 93], ["racing", "Racing Club", "RAC", 3215, 88], ["lanus", "Lanús", "LAN", 3218, 84], ["boca", "Boca Juniors", "BOC", 3202, 91],
+    ["independiente", "Independiente", "IND", 3209, 82], ["san_lorenzo", "San Lorenzo", "CAS", 3201, 81], ["velez", "Vélez Sarsfield", "VEL", 3208, 83], ["argentinos", "Argentinos Juniors", "ARG", 3216, 82],
+    ["platense", "Platense", "PLA", 36837, 76], ["estudiantes", "Estudiantes LP", "EST", 3206, 86], ["gimnasia", "Gimnasia LP", "GEL", 3205, 78], ["central", "Rosario Central", "CEN", 3217, 83],
+    ["newells", "Newell's Old Boys", "NOB", 3212, 77], ["talleres", "Talleres", "TAL", 3210, 84], ["belgrano", "Belgrano", "BEL", 3203, 84], ["defensa", "Defensa y Justicia", "DYJ", 36839, 79],
     ["banfield", "Banfield", "BAN", 3219, 72], ["godoy", "Godoy Cruz", "GOD", 6074, 78],
   ].map(([id,name,shortName,crestId,strength]) => ({ id, name, shortName, crestId, strength })) as DivisionTeam[],
   "Primera B": [

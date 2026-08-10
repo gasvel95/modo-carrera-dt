@@ -20,6 +20,9 @@ export type Club = {
   region: string;
   reputation: number;
   squadStrength: number;
+  attack: number;
+  midfield: number;
+  defense: number;
   fanPressure: number;
   boardPressure: number;
   budget: number;
@@ -70,6 +73,9 @@ export type PlayerScorer = { name: string; position: string; goals: number; weig
 export type TransferCandidate = { id: string; name: string; age: number; position: string; profile: string; cost: number; strength: number; risk: number };
 export type PendingTransfer = { id: string; playerName: string; triggerWeek: number; strength: number; risk: number; resolved: boolean };
 export type ClubOffer = { club: Club; kind: "renewal" | "new"; reason: string };
+export type TacticalApproach = "Ofensivo" | "Equilibrado" | "Defensivo";
+export type Formation = "4-3-3" | "4-2-3-1" | "4-4-2" | "3-5-2" | "5-3-2";
+export type SquadReport = { attack: number; midfield: number; defense: number; strengths: string[]; weaknesses: string[] };
 
 export type GameEvent = {
   id: string;
@@ -115,6 +121,11 @@ export type Season = {
   preseasonDone: boolean;
   squadStrengthModifier: number;
   pendingTransfers: PendingTransfer[];
+  squadReport: SquadReport;
+  tacticalApproach?: TacticalApproach;
+  formation?: Formation;
+  tacticalModifier: number;
+  tacticsConfirmed: boolean;
 };
 
 export type SeasonRecord = {
@@ -134,7 +145,7 @@ export type SeasonRecord = {
 };
 
 export type CareerState = {
-  version: 3;
+  version: 4;
   seed: number;
   rngState: number;
   manager: Manager;
@@ -144,6 +155,8 @@ export type CareerState = {
   trophies: number;
   promotions: number;
   clubDivisions: Record<string, string>;
+  eventHistory: Record<string, number>;
+  offerHistory: Array<{ year: number; clubIds: string[] }>;
 };
 
 export type MeaningfulMoment =

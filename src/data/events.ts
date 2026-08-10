@@ -113,4 +113,40 @@ export const EVENTS: GameEvent[] = [
     option("protect_youth", "Proteger al más joven", "calm", { fanApproval: 5, morale: 4 }, { harmony: -10, respect: -4 }),
     option("group_decides", "Que el grupo resuelva", "bold", { harmony: 13, respect: 5 }, { respect: -11, pressure: 6 }),
   ] }),
+  event({ id: "assistant_disagrees", category: "cuerpo_tecnico", level: "MEDIUM", kicker: "MESA TÁCTICA", title: "Tu ayudante propone romper el libreto", description: "El segundo entrenador ve al equipo previsible y pide ensayar una variante que nunca usaron.", minWeek: 5, condition: "any", options: [
+    option("test_variant", "Probarla a puertas cerradas", "calm", { performance: .03, respect: 5 }, { harmony: -4 }), option("keep_plan", "Mantener el plan original", "safe", { harmony: 5 }, { performance: -.025 }), option("delegate_variant", "Darle un partido para demostrarlo", "bold", { respect: 9, performance: .04 }, { pressure: 8 }),
+  ] }),
+  event({ id: "reserve_recommendation", category: "juveniles", level: "MEDIUM", kicker: "INFORME DE RESERVA", title: "Un lateral juvenil pide pista", description: "El técnico de Reserva insiste con un defensor veloz que todavía no debutó.", minWeek: 4, condition: "any", options: [
+    option("debut_youth", "Hacerlo debutar", "bold", { fanApproval: 8, performance: .025 }, { performance: -.03 }), option("train_first", "Sumarlo sólo a los entrenamientos", "calm", { harmony: 5, respect: 4 }, { fanApproval: -3 }), option("leave_reserve", "Dejarlo completar su proceso", "safe", { boardTrust: 5 }, { respect: -4 }),
+  ] }),
+  event({ id: "set_piece_specialist", category: "deportivo", level: "MEDIUM", kicker: "PELOTA PARADA", title: "Apareció un especialista inesperado", description: "Un defensor suplente convirtió tiros libres toda la semana y pide ejecutarlos en competencia.", minWeek: 6, condition: "any", options: [
+    option("give_kicks", "Darle los tiros libres", "bold", { morale: 7, performance: .03 }, { harmony: -5 }), option("share_kicks", "Repartir las ejecuciones", "calm", { harmony: 8 }, { performance: -.015 }), option("keep_taker", "Sostener al ejecutante habitual", "safe", { respect: 6 }, { morale: -5 }),
+  ] }),
+  event({ id: "travel_fatigue", category: "deportivo", level: "MEDIUM", kicker: "CALENDARIO PESADO", title: "El viaje dejó al plantel sin piernas", description: "La delegación volvió de madrugada y el próximo partido llega con poco descanso.", minWeek: 9, condition: "any", options: [
+    option("rest_starters", "Descansar a los titulares", "safe", { morale: 7, performance: .015 }, { performance: -.035 }), option("train_normal", "Entrenar con normalidad", "bold", { performance: .03, respect: 4 }, { morale: -9 }), option("recovery", "Hacer sólo recuperación", "calm", { harmony: 6, pressure: -3 }, { performance: -.015 }),
+  ] }),
+  event({ id: "pitch_condition", category: "institucional", level: "MEDIUM", kicker: "CANCHA DIFÍCIL", title: "El campo de juego está en mal estado", description: "La lluvia dañó el césped y el partido de local exige adaptar el plan.", minWeek: 5, condition: "any", options: [
+    option("direct_play", "Preparar un juego directo", "safe", { performance: .025 }, { morale: -3 }), option("keep_style", "No cambiar la identidad", "bold", { respect: 7, performance: .035 }, { pressure: 5 }), option("ask_delay", "Pedir que posterguen el partido", "calm", { boardTrust: 5 }, { fanApproval: -6 }),
+  ] }),
+  event({ id: "agent_leak", category: "mercado", level: "MAJOR", kicker: "RUIDO DE MERCADO", title: "Un representante filtró una salida", description: "El agente de {player} asegura que su jugador se irá aunque el club no recibió ninguna oferta.", minWeek: 11, condition: "any", options: [
+    option("deny_agent", "Desmentirlo públicamente", "bold", { fanApproval: 7, respect: 5 }, { pressure: 8 }), option("meet_agent", "Reunirte con el representante", "calm", { harmony: 7 }, { boardTrust: -5 }), option("ignore_agent", "No alimentar el rumor", "safe", { pressure: -4 }, { morale: -6 }),
+  ] }),
+  event({ id: "captaincy_vote", category: "vestuario", level: "MAJOR", kicker: "BRAZALETE EN DISPUTA", title: "El grupo discute la capitanía", description: "Dos referentes creen representar mejor al plantel y la división ya se nota en las prácticas.", minWeek: 8, condition: "low_morale", options: [
+    option("choose_captain", "Elegir vos al capitán", "bold", { respect: 12 }, { harmony: -12 }), option("squad_vote", "Hacer una votación", "calm", { harmony: 10 }, { respect: -6 }), option("two_captains", "Repartir la capitanía", "safe", { morale: 6, harmony: 4 }, { pressure: 5 }),
+  ] }),
+  event({ id: "medical_dispute", category: "lesiones", level: "MAJOR", kicker: "PARTE MÉDICO", title: "Los médicos no se ponen de acuerdo", description: "{topScorer} dice estar listo, pero el área médica recomienda esperar una fecha más.", minWeek: 12, condition: "any", options: [
+    option("trust_doctors", "Respetar el alta médica", "safe", { boardTrust: 7, respect: 4 }, { performance: -.025 }), option("trust_player", "Dejar que el jugador decida", "bold", { morale: 8, performance: .035 }, { pressure: 9 }), option("limited_minutes", "Llevarlo al banco", "calm", { harmony: 6, performance: .015 }, { pressure: 3 }),
+  ] }),
+  event({ id: "sponsor_obligation", category: "institucional", level: "MEDIUM", kicker: "AGENDA DEL CLUB", title: "El sponsor exige una aparición", description: "La actividad comercial cae justo antes de un partido importante y la dirigencia quiere al plantel completo.", minWeek: 7, condition: "any", options: [
+    option("send_stars", "Cumplir con las figuras", "safe", { boardTrust: 10 }, { morale: -6, performance: -.02 }), option("send_youth", "Enviar juveniles", "calm", { morale: 4 }, { boardTrust: -7 }), option("cancel_event", "Cancelar la aparición", "bold", { performance: .03, respect: 5 }, { boardTrust: -12 }),
+  ] }),
+  event({ id: "supporters_mural", category: "institucional", level: "MEDIUM", kicker: "IDENTIDAD", title: "Los hinchas quieren homenajear a un ídolo", description: "Una agrupación propone pintar un mural en el predio y pide que el plantel participe.", minWeek: 6, condition: "good_form", options: [
+    option("join_mural", "Participar con todo el plantel", "calm", { fanApproval: 12, harmony: 5 }, { performance: -.015 }), option("captains_only", "Mandar sólo a los capitanes", "safe", { fanApproval: 6 }, { respect: -3 }), option("focus_match", "Concentrarse sólo en competir", "bold", { performance: .025 }, { fanApproval: -8 }),
+  ] }),
+  event({ id: "veteran_retirement", category: "vestuario", level: "MEDIUM", kicker: "FIN DE CICLO", title: "Un veterano anuncia su retiro", description: "Uno de los jugadores más respetados decidió que ésta será su última temporada.", minWeek: 15, condition: "any", options: [
+    option("farewell_now", "Anunciar una despedida grande", "calm", { morale: 10, fanApproval: 8 }, { pressure: 5 }), option("wait_end", "Esperar al final del torneo", "safe", { harmony: 5 }, { morale: -3 }), option("offer_staff", "Ofrecerle sumarse al cuerpo técnico", "bold", { respect: 12, harmony: 6 }, { boardTrust: -5 }),
+  ] }),
+  event({ id: "viral_celebration", category: "medios", level: "MEDIUM", kicker: "REDES ENCENDIDAS", title: "Un festejo se volvió viral", description: "La celebración de {player} gustó a los hinchas pero molestó al próximo rival.", minWeek: 5, condition: "good_form", options: [
+    option("celebrate_more", "Defender la espontaneidad", "bold", { fanApproval: 9, morale: 6 }, { pressure: 7 }), option("lower_tone", "Pedirle que baje el tono", "safe", { respect: 5, pressure: -3 }, { morale: -5 }), option("use_message", "Convertirlo en una campaña del club", "calm", { boardTrust: 7, fanApproval: 6 }, { harmony: -3 }),
+  ] }),
 ];
