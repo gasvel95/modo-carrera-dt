@@ -42,3 +42,6 @@ yarn-error.log*
 /dev-server.log
 /dev-server-error.log
 /tsconfig.tsbuildinfo
+
+# local Sites deployment archives
+/.openai/*.tar.gz
