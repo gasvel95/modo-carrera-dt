@@ -12,7 +12,7 @@ test("renders the finished game shell", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   const html = await response.text();
-  assert.match(html, /Convertite en DT/i);
+  assert.match(html, /Modo Carrera DT/i);
   assert.match(html, /NO JUGÁS/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Building your site/i);
 });
