@@ -14,5 +14,7 @@ test("renders the finished game shell", async () => {
   const html = await response.text();
   assert.match(html, /Modo Carrera DT/i);
   assert.match(html, /NO JUGÁS/);
+  assert.match(html, /cafecito\.app\/oddloop/);
+  assert.match(html, /Desarrollado por Oddloop/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Building your site/i);
 });
