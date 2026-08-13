@@ -122,6 +122,23 @@ export function GameApp() {
         </div>
       </section>}
 
+      {screen === "intro" && <section className="seo-overview" aria-labelledby="seo-title">
+        <p className="eyebrow">JUGÁ GRATIS · SIN DESCARGAS</p>
+        <h2 id="seo-title">UN JUEGO DE DIRECTOR TÉCNICO ARGENTINO.</h2>
+        <p className="seo-lead">Modo Carrera DT es un simulador narrativo de fútbol para jugar online desde el celular o la computadora. Creá tu entrenador, empezá en el ascenso argentino y tomá las decisiones que pueden llevarte hasta Primera y la Copa Libertadores.</p>
+        <div className="seo-features">
+          <article><span>01</span><h3>Empezá desde abajo</h3><p>Elegí un club, analizá el plantel y buscá ascensos temporada tras temporada.</p></article>
+          <article><span>02</span><h3>Decidí como un DT</h3><p>Definí formación, enfoque de juego, refuerzos y respuestas ante un vestuario impredecible.</p></article>
+          <article><span>03</span><h3>Construí una historia</h3><p>Jugá clásicos y copas, ganá idolatría y descubrí hasta dónde llega tu carrera.</p></article>
+        </div>
+        <div className="seo-faq">
+          <h3>Preguntas frecuentes</h3>
+          <details><summary>¿Modo Carrera DT es gratis?</summary><p>Sí. Podés jugar una carrera completa gratis y sin crear una cuenta.</p></details>
+          <details><summary>¿Tengo que descargar el juego?</summary><p>No. Funciona directamente en un navegador moderno, tanto en dispositivos móviles como en computadora.</p></details>
+          <details><summary>¿Qué competiciones incluye?</summary><p>La carrera recorre categorías del ascenso y puede llegar a Primera División, Copa Argentina y Copa Libertadores.</p></details>
+        </div>
+      </section>}
+
       {screen === "offers" && state && <section className="content-view">
         <div className="page-heading"><div><p className="eyebrow">EL TELÉFONO SONÓ</p><h2>{state.history.length ? <>TU PRÓXIMA<br />DECISIÓN.</> : <>TRES CLUBES.<br />UNA OPORTUNIDAD.</>}</h2></div><div className="manager-stamp"><span>DT</span><strong>{state.manager.name}</strong><small>REP. {state.manager.reputation}</small></div></div>
         <p className="lead">{state.history.length ? "El mercado leyó tu última campaña. El rendimiento abre puertas, pero el azar también mueve dirigentes." : "Nadie te conoce todavía. Estas instituciones están dispuestas a darte las llaves del vestuario."}</p>
