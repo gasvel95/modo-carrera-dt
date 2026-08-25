@@ -13,11 +13,12 @@ test("renders the finished game shell", async () => {
   assert.equal(response.status, 200);
   const html = await response.text();
   assert.match(html, /Modo Carrera DT/i);
-  assert.match(html, /NO JUGÁS/);
+  assert.match(html, /DOS CARRERAS/);
+  assert.match(html, /JUGADOR.*DEL ASCENSO/s);
   assert.match(html, /cafecito\.app\/oddloop/);
   assert.match(html, /Desarrollado por Oddloop/);
   assert.match(html, /Juego de director t.cnico argentino/i);
   assert.match(html, /application\/ld\+json/);
-  assert.match(html, /simulador narrativo de f.tbol/i);
+  assert.match(html, /simulaci.n de f.tbol/i);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Building your site/i);
 });

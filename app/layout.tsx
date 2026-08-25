@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     default: "Modo Carrera DT | Juego de director técnico argentino",
     template: "%s | Modo Carrera DT",
   },
-  description: "Juego de director técnico argentino gratis y online. Empezá en el ascenso, elegí tácticas y refuerzos, disputá copas y construí tu carrera.",
+  description: "Juego de director técnico y carrera de jugador argentino gratis y online. Empezá en el ascenso y construí tu historia hasta Primera.",
   applicationName: "Modo Carrera DT",
   authors: [{ name: "Oddloop" }],
   creator: "Oddloop",
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
   openGraph: {
     title: "Modo Carrera DT | Juego de DT argentino",
-    description: "Empezá en el ascenso y construí tu carrera como director técnico. Gratis, online y sin descargar.",
+    description: "Elegí ser DT o jugador, empezá en el ascenso argentino y construí tu carrera hasta Primera. Gratis y online.",
     type: "website",
     url: "/",
     siteName: "Modo Carrera DT",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Modo Carrera DT | Juego de DT argentino",
-    description: "Empezá en el ascenso y construí tu carrera como director técnico. Gratis y online.",
+    description: "Elegí ser DT o jugador y construí tu carrera desde el ascenso argentino. Gratis y online.",
     images: ["/og.png"],
   },
 };

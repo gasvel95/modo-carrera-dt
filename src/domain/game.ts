@@ -126,6 +126,7 @@ export type Season = {
   harmony: number;
   fanApproval: number;
   boardTrust: number;
+  idolatry: number;
   pressure: number;
   performanceModifier: number;
   eventCount: number;

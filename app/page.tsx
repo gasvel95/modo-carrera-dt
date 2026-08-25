@@ -7,7 +7,7 @@ export default function Home() {
     "@type": "SoftwareApplication",
     name: "Modo Carrera DT",
     url: SITE_URL,
-    description: "Juego narrativo de director técnico argentino: empezá en el ascenso, tomá decisiones y construí una carrera hasta ganar en Argentina y la Copa Libertadores.",
+    description: "Simulador narrativo de fútbol argentino: jugá como director técnico o como futbolista, empezá en el ascenso y construí tu carrera hasta Primera.",
     applicationCategory: "GameApplication",
     applicationSubCategory: "Juego de estrategia y simulación de fútbol",
     operatingSystem: "Cualquier dispositivo con navegador web",

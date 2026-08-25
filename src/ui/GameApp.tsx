@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { GameModeSelector } from "./GameModeSelector";
+import { PlayerCareerApp } from "./PlayerCareerApp";
 import { generateOffers, advanceUntilNextMeaningfulMoment, canMoveToEurope, confirmSeasonTactics, createCareer, endCareer, finishSeason, resolveEvent, startSeason } from "../game-engine/careerEngine";
 import { getClub } from "../data/clubs";
 import { crestUrl } from "../data/divisions";
@@ -39,6 +41,7 @@ function Crest({ crestId, name, small = false }: { crestId: number; name: string
 }
 
 export function GameApp() {
+  const [gameMode, setGameMode] = useState<"select" | "manager" | "player">("select");
   const [state, setState] = useState<CareerState | null>(null);
   const [screen, setScreen] = useState<Screen>("intro");
   const [activeEvent, setActiveEvent] = useState<GameEvent | null>(null);
@@ -98,6 +101,17 @@ export function GameApp() {
   const restart = () => { localStorage.removeItem(STORAGE_KEY); setState(null); setActiveEvent(null); setOutcome(null); setScreen("intro"); };
   const last = state?.history.at(-1);
 
+  if (gameMode === "player") return <PlayerCareerApp onExit={() => setGameMode("select")} />;
+  if (gameMode === "select") return (
+    <main className="game-shell">
+      <div className="paper-noise" aria-hidden="true" />
+      <Brand state={state} />
+      <GameModeSelector onManager={() => setGameMode("manager")} onPlayer={() => setGameMode("player")} />
+      <a className="cafecito-button" href="https://cafecito.app/oddloop" rel="noopener noreferrer" target="_blank" aria-label="Invitame un café en Cafecito, abre en una pestaña nueva"><img src="https://cdn.cafecito.app/imgs/buttons/button_4.png" alt="Invitame un café en cafecito.app" /></a>
+      <footer><span>MODO CARRERA DT · DOS MANERAS DE VIVIR EL FÚTBOL.<small>Desarrollado por Oddloop</small></span></footer>
+    </main>
+  );
+
   return (
     <main className="game-shell">
       <div className="paper-noise" aria-hidden="true" />
@@ -119,6 +133,7 @@ export function GameApp() {
           <fieldset><legend>Tu filosofía</legend><div className="philosophy-grid">{philosophies.map((item) => <button type="button" key={item} className={form.philosophy === item ? "selected" : ""} onClick={() => setForm({ ...form, philosophy: item })}>{item}</button>)}</div></fieldset>
           <button className="primary" onClick={begin} disabled={!form.name.trim()}>BUSCAR TRABAJO <span>→</span></button>
           <p className="microcopy">Tu carrera se guarda automáticamente en este dispositivo.</p>
+          {!state && <button className="text-button" onClick={() => setGameMode("select")}>← Elegir otro modo</button>}
         </div>
       </section>}
 
@@ -219,7 +234,7 @@ export function GameApp() {
       {screen === "retire" && state && <section className="retire-view"><p className="eyebrow">DECISIÓN IRREVERSIBLE</p><h2>¿ES EL MOMENTO<br />DE PARAR?</h2><p>Podés retirarte voluntariamente en cualquier temporada. Tu historial, títulos, ascensos e idolatría quedarán como balance definitivo.</p><div className="retire-facts"><div><span>EDAD</span><strong>{state.manager.age}</strong></div><div><span>TEMPORADAS</span><strong>{state.history.length}</strong></div><div><span>TÍTULOS</span><strong>{state.trophies}</strong></div></div><button className="primary" onClick={() => completeCareer("retirement")}>CONFIRMAR RETIRO <span>→</span></button><button className="text-button" onClick={() => setScreen(state.season ? state.season.tacticsConfirmed ? "season" : "report" : "offers")}>Todavía no. Seguir dirigiendo.</button></section>}
 
       {screen === "ending" && state?.ending && <section className={`ending-view ${state.ending.reason}`}><p className="eyebrow">FINAL DE CARRERA · {state.ending.year}</p><h1>{state.ending.title}</h1><p>{state.ending.description}</p><div className="ending-record"><div><span>EDAD FINAL</span><strong>{state.ending.age}</strong></div><div><span>TEMPORADAS</span><strong>{state.history.length}</strong></div><div><span>TÍTULOS</span><strong>{state.trophies}</strong></div><div><span>ASCENSOS</span><strong>{state.promotions}</strong></div></div><blockquote>“{state.manager.name}: una carrera que empezó sin nombre y terminó dejando una historia propia.”</blockquote><button className="primary light" onClick={restart}>EMPEZAR OTRA HISTORIA <span>→</span></button></section>}
-      <a className="cafecito-button" href="https://cafecito.app/oddloop" rel="noopener" target="_blank" aria-label="Invitame un café en Cafecito, abre en una pestaña nueva"><img srcSet="https://cdn.cafecito.app/imgs/buttons/button_4.png 1x, https://cdn.cafecito.app/imgs/buttons/button_4_2x.png 2x, https://cdn.cafecito.app/imgs/buttons/button_4_3.75x.png 3.75x" src="https://cdn.cafecito.app/imgs/buttons/button_4.png" alt="Invitame un café en cafecito.app" /></a>
+      <a className="cafecito-button" href="https://cafecito.app/oddloop" rel="noopener noreferrer" target="_blank" aria-label="Invitame un café en Cafecito, abre en una pestaña nueva"><img srcSet="https://cdn.cafecito.app/imgs/buttons/button_4.png 1x, https://cdn.cafecito.app/imgs/buttons/button_4_2x.png 2x, https://cdn.cafecito.app/imgs/buttons/button_4_3.75x.png 3.75x" src="https://cdn.cafecito.app/imgs/buttons/button_4.png" alt="Invitame un café en cafecito.app" /></a>
       <footer><span>MODO CARRERA DT · LOS PARTIDOS OCURREN. VOS APARECÉS CUANDO IMPORTA.<small>Desarrollado por Oddloop</small></span><span className="image-credits">Trofeos: <a href="https://commons.wikimedia.org/wiki/File:LigaProfesionalArg.png">Liga (CC0)</a> · <a href="https://commons.wikimedia.org/wiki/File:Trof%C3%A9u_da_Copa_da_Argentina.png">Copa Argentina (Taf0723, CC BY-SA 4.0)</a> · <a href="https://commons.wikimedia.org/wiki/File:328-3287452_copa-libertadores-primer-trofeo-hd-png-download.png">Libertadores (Mathiaseditorxd, CC BY-SA 4.0)</a></span></footer>
     </main>
   );
