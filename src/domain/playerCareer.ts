@@ -7,6 +7,7 @@ export type PlayerClub = {
   id: string;
   name: string;
   shortName: string;
+  crestId?: number;
   division: PlayerDivision;
   tier: number;
   strength: number;
@@ -22,6 +23,7 @@ export type PlayerOffer = {
 export type PlayerMatch = {
   round: number;
   opponent: string;
+  opponentCrestId?: number;
   result: "G" | "E" | "P";
   minutes: number;
   rating?: number;
@@ -43,6 +45,7 @@ export type PlayerSeason = {
   ratingTotal: number;
   coachTrust: number;
   fitness: number;
+  formBoost?: number;
   recentMatches: PlayerMatch[];
   completed: boolean;
 };
@@ -51,6 +54,8 @@ export type PlayerSeasonRecord = {
   year: number;
   age: number;
   club: string;
+  clubShortName?: string;
+  crestId?: number;
   division: PlayerDivision;
   appearances: number;
   starts: number;
@@ -62,6 +67,11 @@ export type PlayerSeasonRecord = {
   overallAfter: number;
   outcome: string;
 };
+
+export type PlayerEventEffects = Partial<{ coachTrust: number; fitness: number; reputation: number; overall: number; formBoost: number }>;
+export type PlayerEventOutcome = { title: string; description: string; tone: "positive" | "negative" | "neutral"; effects: PlayerEventEffects };
+export type PlayerEventOption = { id: string; text: string; approach: "bold" | "calm" | "safe"; successChance: number; outcomes: { success: PlayerEventOutcome; failure: PlayerEventOutcome } };
+export type PlayerCareerEvent = { id: string; kicker: string; title: string; description: string; options: PlayerEventOption[] };
 
 export type PlayerRetirement = {
   reason: "voluntary" | "age";
@@ -89,6 +99,9 @@ export type PlayerCareerState = {
   history: PlayerSeasonRecord[];
   totals: { appearances: number; starts: number; minutes: number; goals: number; assists: number };
   reachedFirstDivision: boolean;
+  seenEvents?: string[];
+  pendingEvent?: PlayerCareerEvent;
+  lastEventOutcome?: PlayerEventOutcome;
   retirement?: PlayerRetirement;
 };
 

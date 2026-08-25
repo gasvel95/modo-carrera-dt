@@ -1,6 +1,7 @@
 import { nextRandom } from "./rng.ts";
 import { nextPlayerDivision, playerClubsForDivision, PRIMERA_D_CLUBS } from "../data/playerClubs.ts";
-import type { PlayerCareerState, PlayerDivision, PlayerMatch, PlayerOffer, PlayerPosition, PreferredFoot, TrainingFocus } from "../domain/playerCareer.ts";
+import { PLAYER_EVENTS } from "../data/playerEvents.ts";
+import type { PlayerCareerState, PlayerDivision, PlayerEventEffects, PlayerMatch, PlayerOffer, PlayerPosition, PreferredFoot, TrainingFocus } from "../domain/playerCareer.ts";
 
 const clamp = (value: number, min = 0, max = 100) => Math.max(min, Math.min(max, value));
 const retirementAge = (position: PlayerPosition) => position === "ARQ" ? 41 : position === "DEF" ? 39 : position === "MED" ? 38 : 37;
@@ -35,14 +36,17 @@ export function createPlayerCareer(input: { name: string; age: number; position:
     offers: initialOffers(safeSeed),
     history: [],
     totals: { appearances: 0, starts: 0, minutes: 0, goals: 0, assists: 0 },
+    seenEvents: [],
     reachedFirstDivision: false,
   };
 }
 
 export function startPlayerSeason(input: PlayerCareerState, clubId: string): PlayerCareerState {
   const state = structuredClone(input);
-  const club = state.offers.find((offer) => offer.club.id === clubId)?.club;
-  if (!club) return state;
+  const offeredClub = state.offers.find((offer) => offer.club.id === clubId)?.club;
+  if (!offeredClub) return state;
+  const catalogClub = playerClubsForDivision(offeredClub.division).find((item) => item.id === offeredClub.id);
+  const club = { ...offeredClub, ...catalogClub };
   const firstArrival = club.division === "Liga Profesional";
   state.club = club;
   state.reachedFirstDivision ||= firstArrival;
@@ -60,10 +64,13 @@ export function startPlayerSeason(input: PlayerCareerState, clubId: string): Pla
     ratingTotal: 0,
     coachTrust: clamp(43 + state.player.overall - club.strength / 2),
     fitness: 100,
+    formBoost: 0,
     recentMatches: [],
     completed: false,
   };
   state.offers = [];
+  delete state.pendingEvent;
+  delete state.lastEventOutcome;
   return state;
 }
 
@@ -76,8 +83,7 @@ export function setTrainingFocus(input: PlayerCareerState, focus: TrainingFocus)
 function opponentFor(state: PlayerCareerState, round: number) {
   const season = state.season!;
   const opponents = playerClubsForDivision(season.club.division).filter((club) => club.id !== season.club.id);
-  if (!opponents.length) return "Selección de la categoría";
-  return opponents[(round + state.seed) % opponents.length].name;
+  return opponents[(round + state.seed) % opponents.length];
 }
 
 export function playPlayerBlock(input: PlayerCareerState): PlayerCareerState {
@@ -93,7 +99,7 @@ export function playPlayerBlock(input: PlayerCareerState): PlayerCareerState {
     const starts = appears && random(state) < clamp(season.coachTrust / 100, .24, .92);
     const minutes = appears ? starts ? 68 + Math.floor(random(state) * 23) : 12 + Math.floor(random(state) * 27) : 0;
     const focusBonus = season.focus === "Físico" ? .11 : season.focus === "Técnica" ? .16 : .08;
-    const rawRating = appears ? clamp(5.35 + random(state) * 2.25 + (state.player.overall - season.club.strength) / 45 + focusBonus, 4.6, 9.4) : undefined;
+    const rawRating = appears ? clamp(5.35 + random(state) * 2.25 + (state.player.overall - season.club.strength) / 45 + focusBonus + (season.formBoost ?? 0), 4.6, 9.4) : undefined;
     const minuteFactor = minutes / 90;
     let goals = appears && random(state) < goalChance[state.player.position] * minuteFactor * (season.focus === "Definición" ? 1.38 : 1) ? 1 : 0;
     if (goals && random(state) < .08) goals++;
@@ -111,10 +117,51 @@ export function playPlayerBlock(input: PlayerCareerState): PlayerCareerState {
       season.coachTrust = clamp(season.coachTrust - .6);
     }
     season.fitness = clamp(season.fitness - minutes / 34 + (season.focus === "Físico" ? 2.8 : 2), 45, 100);
-    block.push({ round: season.round, opponent: opponentFor(state, season.round), result, minutes, rating: rawRating ? Number(rawRating.toFixed(1)) : undefined, goals, assists });
+    season.formBoost = (season.formBoost ?? 0) * .85;
+    const opponent = opponentFor(state, season.round);
+    block.push({ round: season.round, opponent: opponent?.name ?? "Selección de la categoría", opponentCrestId: opponent?.crestId, result, minutes, rating: rawRating ? Number(rawRating.toFixed(1)) : undefined, goals, assists });
   }
   season.recentMatches = block;
   season.completed = season.round >= season.totalRounds;
+  if (!season.completed && !state.pendingEvent && random(state) < .58) queuePlayerEvent(state);
+  return state;
+}
+
+function queuePlayerEvent(state: PlayerCareerState) {
+  const seen = state.seenEvents ?? [];
+  const recent = new Set(seen.slice(-5));
+  const pool = PLAYER_EVENTS.filter((event) => !recent.has(event.id));
+  const event = pool[Math.floor(random(state) * pool.length)] ?? PLAYER_EVENTS[0];
+  state.pendingEvent = structuredClone(event);
+  state.seenEvents = [...seen, event.id].slice(-10);
+}
+
+function applyEventEffects(state: PlayerCareerState, effects: PlayerEventEffects) {
+  if (state.season) {
+    state.season.coachTrust = clamp(state.season.coachTrust + (effects.coachTrust ?? 0));
+    state.season.fitness = clamp(state.season.fitness + (effects.fitness ?? 0));
+    state.season.formBoost = clamp((state.season.formBoost ?? 0) + (effects.formBoost ?? 0), -.5, .5);
+  }
+  state.player.reputation = clamp(state.player.reputation + (effects.reputation ?? 0));
+  state.player.overall = clamp(state.player.overall + (effects.overall ?? 0), 35, state.player.potential);
+}
+
+export function resolvePlayerEvent(input: PlayerCareerState, optionId: string): PlayerCareerState {
+  const state = structuredClone(input);
+  const option = state.pendingEvent?.options.find((item) => item.id === optionId);
+  if (!option) return state;
+  const composureBonus = (state.player.reputation - 25) / 500 + ((state.season?.coachTrust ?? 50) - 50) / 1000;
+  const success = random(state) < clamp(option.successChance + composureBonus, .15, .88);
+  const result = structuredClone(success ? option.outcomes.success : option.outcomes.failure);
+  applyEventEffects(state, result.effects);
+  state.lastEventOutcome = result;
+  delete state.pendingEvent;
+  return state;
+}
+
+export function dismissPlayerEventOutcome(input: PlayerCareerState): PlayerCareerState {
+  const state = structuredClone(input);
+  delete state.lastEventOutcome;
   return state;
 }
 
@@ -146,7 +193,7 @@ export function finishPlayerSeason(input: PlayerCareerState): PlayerCareerState 
   state.player.reputation = clamp(state.player.reputation + Math.round((averageRating - 5.8) * 14 + season.goals * 1.8 + season.assists * 1.3 + season.appearances / 4), 0, 100);
   const outcome = averageRating >= 7.3 ? "Figura de la temporada" : averageRating >= 6.65 ? "Temporada en crecimiento" : averageRating >= 6.1 ? "Cumplió con el equipo" : "Año de aprendizaje";
   state.history.push({
-    year: season.year, age: state.player.age, club: season.club.name, division: season.club.division,
+    year: season.year, age: state.player.age, club: season.club.name, clubShortName: season.club.shortName, crestId: season.club.crestId, division: season.club.division,
     appearances: season.appearances, starts: season.starts, minutes: season.minutes, goals: season.goals, assists: season.assists,
     averageRating: Number(averageRating.toFixed(2)), overallBefore, overallAfter: state.player.overall, outcome,
   });
