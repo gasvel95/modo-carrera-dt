@@ -98,6 +98,32 @@ legend { margin-bottom: 10px; }
 footer { min-height: 48px; background: var(--ink); color: rgba(255,255,255,.6); display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 12px 5vw; font-size: 8px; font-weight: 900; letter-spacing: .08em; }footer > span:first-child { display: grid; gap: 4px; }footer small { color: rgba(255,255,255,.85); font-size: 8px; letter-spacing: .1em; }.image-credits { text-align: right; font-size: 7px; font-weight: 500; }.image-credits a { color: rgba(255,255,255,.72); }
 .cafecito-button { position: fixed; z-index: 50; right: 20px; bottom: 66px; display: block; border-radius: 8px; filter: drop-shadow(0 7px 12px rgba(0,0,0,.28)); transition: transform .18s ease, filter .18s ease; }.cafecito-button:hover { transform: translateY(-3px); filter: drop-shadow(0 10px 14px rgba(0,0,0,.34)); }.cafecito-button:focus-visible { outline: 3px solid var(--lime); outline-offset: 4px; }.cafecito-button img { display: block; width: 155px; height: auto; }
 
+.info-page { min-height: 100vh; background: #f1efe5; color: #11120f; }
+.info-page > nav { height: 72px; padding: 0 5vw; display: flex; align-items: center; border-bottom: 1px solid #11120f; }
+.info-page > nav a { color: #11120f; font-size: 10px; font-weight: 900; letter-spacing: .1em; text-decoration: none; }
+.info-page article { width: min(1060px, 90vw); margin: 0 auto; padding: 70px 0 90px; }
+.info-page header { padding: clamp(45px, 8vw, 90px); background: #184b32; color: #fff; }
+.info-page header > p, .info-page .faq > p { margin: 0 0 14px; color: #d8ff3e; font-size: 9px; font-weight: 900; letter-spacing: .16em; }
+.info-page h1 { max-width: 850px; margin: 0; font: 900 clamp(55px, 9vw, 100px)/.84 Arial Black, sans-serif; letter-spacing: -.07em; }
+.info-page h1 em { color: #d8ff3e; font-style: normal; }
+.info-page header > span { display: block; max-width: 720px; margin-top: 28px; color: rgba(255,255,255,.72); font-size: 17px; line-height: 1.55; }
+.info-page article > section { padding: 55px 7vw; border: 1px solid rgba(17,18,15,.25); border-top: 0; }
+.info-page h2 { margin: 0 0 18px; font: 900 clamp(28px, 4vw, 46px)/.95 Arial Black, sans-serif; letter-spacing: -.04em; }
+.info-page section > p:not(:first-child), .info-grid p { margin: 0; font-size: 15px; line-height: 1.7; }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; border-inline: 1px solid rgba(17,18,15,.25); }
+.info-grid section { padding: 45px; border-right: 1px solid rgba(17,18,15,.25); }
+.info-grid section:last-child { border-right: 0; }
+.info-grid small { display: block; margin-bottom: 18px; color: #184b32; font-size: 9px; font-weight: 900; letter-spacing: .12em; }
+.info-page .faq { background: #11120f; color: #fff; }
+.faq details { border-top: 1px solid rgba(255,255,255,.24); }
+.faq details:last-child { border-bottom: 1px solid rgba(255,255,255,.24); }
+.faq summary { padding: 18px 0; cursor: pointer; font-size: 12px; font-weight: 900; }
+.faq details span { display: block; max-width: 760px; padding: 0 0 20px; color: rgba(255,255,255,.7); font-size: 14px; line-height: 1.6; }
+.info-page article > footer { padding: 30px; display: flex; justify-content: space-between; align-items: center; background: #d8ff3e; color: #11120f; }
+.info-page footer a { color: #11120f; font-size: 12px; font-weight: 900; text-decoration: none; }
+.info-page footer small { font-size: 9px; font-weight: 800; }
+@media (max-width: 720px) { .info-page article { width: 100%; padding: 0; }.info-page header { padding: 55px 20px; }.info-page h1 { font-size: 52px; }.info-page article > section, .info-grid section { padding: 40px 20px; }.info-grid { grid-template-columns: 1fr; }.info-grid section { border-right: 0; border-bottom: 1px solid rgba(17,18,15,.25); }.info-page article > footer { align-items: flex-start; gap: 12px; flex-direction: column; } }
+
 @media (max-width: 1100px) {
   .brand { flex-wrap: wrap; }.career-summary { order: 3; width: 100%; margin: 3px 0 0; overflow-x: auto; }.career-summary > div { flex: 1; }.career-nav { top: 20px; }
 }

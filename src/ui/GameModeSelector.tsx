@@ -15,6 +15,10 @@ export function GameModeSelector({ onManager, onPlayer }: { onManager: () => voi
         <i>10</i><small>NUEVO MODO</small><strong>JUGADOR<br />DEL ASCENSO</strong><span>Debutá en Primera D, crecé partido a partido y construí una carrera hasta el retiro.</span><b>JUGAR COMO FUTBOLISTA →</b>
       </button>
     </div>
+    <nav className={styles.publicLinks} aria-label="Información del juego">
+      <a href="/acerca">ACERCA DEL JUEGO</a>
+      <span>Juego gratuito de fútbol argentino · Dos modos de carrera</span>
+    </nav>
   </section>;
 }
 

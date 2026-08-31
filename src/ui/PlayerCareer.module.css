@@ -15,6 +15,10 @@
 .modeCards .playerMode { background: #183f63; border-color: #6ac5df; }
 .modeCards .playerMode i { background: #6ac5df; }
 .modeCards .playerMode small, .modeCards .playerMode b { color: #9ee8f7; }
+.publicLinks { margin-top: 28px; display: flex; justify-content: space-between; gap: 18px; color: rgba(255,255,255,.48); font-size: 9px; font-weight: 800; letter-spacing: .08em; }
+.publicLinks a { color: #d8ff3e; text-decoration: none; border-bottom: 1px solid currentColor; }
+.publicLinks a:hover { color: #fff; }
+.publicLinks span { text-align: right; }
 
 .playerHeader { min-height: 82px; padding: 12px 5vw; display: flex; align-items: center; gap: 20px; border-bottom: 1px solid #11120f; }
 .backButton { border: 0; border-bottom: 1px solid #11120f; background: transparent; padding: 5px 0; font-size: 9px; font-weight: 900; }
@@ -195,6 +199,7 @@
   .modeCards, .setup, .seasonGrid { grid-template-columns: 1fr; }
   .modeCards > button { min-height: 270px; padding: 22px; grid-template-columns: 55px 1fr; column-gap: 15px; }
   .modeCards i { width: 52px; height: 52px; font-size: 20px; }
+  .publicLinks { display: grid; }.publicLinks span { text-align: left; }
   .setupHero { min-height: auto; padding: 65px 20px; }.setupHero h1 { font-size: 55px; }.setupForm { padding: 48px 20px 70px; }
   .playerHeader { padding-inline: 15px; }.playerBrand small { display: none; }.headerPlayer { display: none; }.playerNav { position: static; padding: 10px 15px; border-bottom: 1px solid #11120f; }
   .content { width: calc(100% - 30px); padding: 48px 0 70px; }.pageTitle h2 { font-size: 48px; }.pageTitle > div:last-child { min-width: 92px; }.pageTitle > div:last-child strong { font-size: 38px; }
