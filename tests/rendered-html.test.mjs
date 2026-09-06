@@ -20,6 +20,9 @@ test("renders the finished game shell", async () => {
   assert.match(html, /Juego de director t.cnico argentino/i);
   assert.match(html, /application\/ld\+json/);
   assert.match(html, /simulaci.n de f.tbol/i);
+  assert.match(html, /pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js\?client=ca-pub-1935863210203708/);
+  assert.match(html, /crossorigin="anonymous"/i);
+  assert.equal(html.match(/<script[^>]+adsbygoogle\.js/g)?.length, 1);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Building your site/i);
 });
 

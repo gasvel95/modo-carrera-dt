@@ -54,6 +54,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="es-AR">
       <head>
         <link rel="alternate" type="text/plain" href="/llms.txt" title="Información para modelos de lenguaje" />
+        {/* Google AdSense */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1935863210203708"
+          crossOrigin="anonymous"
+        />
         {/* Google tag (gtag.js) */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18144767586" />
         <script
