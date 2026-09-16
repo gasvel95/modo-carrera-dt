@@ -65,6 +65,7 @@ export function startPlayerSeason(input: PlayerCareerState, clubId: string): Pla
     coachTrust: clamp(43 + state.player.overall - club.strength / 2),
     fitness: 100,
     formBoost: 0,
+    suspendedMatches: 0,
     recentMatches: [],
     completed: false,
   };
@@ -94,8 +95,10 @@ export function playPlayerBlock(input: PlayerCareerState): PlayerCareerState {
   const matches = Math.min(4, season.totalRounds - season.round);
   for (let index = 0; index < matches; index++) {
     season.round++;
+    const suspended = (season.suspendedMatches ?? 0) > 0;
+    if (suspended) season.suspendedMatches = Math.max(0, (season.suspendedMatches ?? 0) - 1);
     const appearanceChance = clamp(.52 + (state.player.overall - season.club.strength) / 95 + season.coachTrust / 300, .2, .98);
-    const appears = random(state) < appearanceChance;
+    const appears = !suspended && random(state) < appearanceChance;
     const starts = appears && random(state) < clamp(season.coachTrust / 100, .24, .92);
     const minutes = appears ? starts ? 68 + Math.floor(random(state) * 23) : 12 + Math.floor(random(state) * 27) : 0;
     const focusBonus = season.focus === "Físico" ? .11 : season.focus === "Técnica" ? .16 : .08;
@@ -141,6 +144,7 @@ function applyEventEffects(state: PlayerCareerState, effects: PlayerEventEffects
     state.season.coachTrust = clamp(state.season.coachTrust + (effects.coachTrust ?? 0));
     state.season.fitness = clamp(state.season.fitness + (effects.fitness ?? 0));
     state.season.formBoost = clamp((state.season.formBoost ?? 0) + (effects.formBoost ?? 0), -.5, .5);
+    state.season.suspendedMatches = Math.max(0, (state.season.suspendedMatches ?? 0) + (effects.suspension ?? 0));
   }
   state.player.reputation = clamp(state.player.reputation + (effects.reputation ?? 0));
   state.player.overall = clamp(state.player.overall + (effects.overall ?? 0), 35, state.player.potential);

@@ -1,0 +1,9 @@
+import type { Metadata } from "next";
+import { ContentLayout } from "../content-layout";
+export const metadata: Metadata = { title: "Términos de uso", description: "Condiciones de uso de Modo Carrera DT, juego gratuito e independiente de simulación narrativa.", alternates: { canonical: "/terminos" } };
+export default function TermsPage() { return <ContentLayout eyebrow="INFORMACIÓN LEGAL" title="TÉRMINOS DE USO" intro="Reglas simples para utilizar el juego y comprender su alcance.">
+  <section><h2>Uso del servicio</h2><p>Modo Carrera DT es un juego gratuito de entretenimiento. Podés jugarlo para uso personal desde un navegador compatible. No está permitido interferir con el funcionamiento del sitio, intentar acceder sin autorización a su infraestructura ni reutilizar su código o contenido de forma que viole derechos de terceros.</p></section>
+  <section><h2>Simulación ficticia</h2><p>Resultados, estadísticas, presupuestos, objetivos, diálogos y eventos son elementos ficticios creados para la simulación. No representan afirmaciones sobre clubes, futbolistas, dirigentes, árbitros u organizaciones reales. El juego no ofrece apuestas ni premios económicos.</p></section>
+  <section><h2>Disponibilidad y responsabilidad</h2><p>El servicio puede cambiar, interrumpirse o incorporar nuevas reglas. Aunque procuramos conservar las partidas, el almacenamiento local puede perderse por acciones del navegador o del dispositivo. El juego se ofrece sin garantía de disponibilidad permanente.</p></section>
+  <section><h2>Propiedad intelectual</h2><p>La programación, los textos narrativos y la identidad propia del proyecto pertenecen a sus respectivos titulares. Los nombres, escudos y marcas de clubes pertenecen a sus propietarios y se utilizan con finalidad identificativa dentro de una obra independiente no oficial.</p></section>
+ </ContentLayout>; }

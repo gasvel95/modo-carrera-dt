@@ -74,7 +74,18 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           }}
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <nav className="site-nav" aria-label="Navegación principal">
+          <a className="site-nav-brand" href="/">MODO CARRERA <b>DT</b></a>
+          <div>
+            <a href="/">JUGAR</a><a href="/guias">GUÍAS</a><a href="/clubes">CLUBES</a><a href="/acerca">ACERCA</a>
+          </div>
+        </nav>
+        {children}
+        <nav className="legal-nav" aria-label="Información institucional">
+          <a href="/privacidad">PRIVACIDAD</a><a href="/terminos">TÉRMINOS</a><a href="/contacto">CONTACTO</a>
+        </nav>
+      </body>
     </html>
   );
 }

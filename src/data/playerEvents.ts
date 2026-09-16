@@ -84,5 +84,16 @@ export const PLAYER_EVENTS: PlayerCareerEvent[] = [
       option("subir_video", "Grabar la escena y subirla a redes", "bold", .45, outcome("El club ganó una mascota", "El video explotó y tu nombre quedó asociado a un momento simpático.", "positive", { reputation: 8 }), outcome("El técnico vio el video antes de terminar la práctica", "La charla posterior fue bastante menos divertida.", "negative", { coachTrust: -9, reputation: -2 })),
     ],
   },
-];
+  {
+    id: "rival_provocation", kicker: "PARTIDO CALIENTE", title: "Un rival te provoca en cada pelota", description: "Te habla al oído, te empuja lejos de la jugada y busca que pierdas la cabeza. El árbitro ya les hizo una advertencia y queda mucho partido.",
+    options: [
+      option("ignore_provocation", "No darle importancia y seguir jugando", "safe", .74,
+        outcome("Le respondiste con fútbol", "No entraste en su juego y terminaste dominando el partido: tu rendimiento sube un 20%.", "positive", { coachTrust: 7, reputation: 5, formBoost: .2 }),
+        outcome("La provocación te sacó del partido", "Intentaste ignorarlo, pero perdiste concentración y participaste cada vez menos.", "negative", { coachTrust: -3, formBoost: -.1 })),
+      option("argue_with_rival", "Entrar en la discusión y marcarle el límite", "bold", .47,
+        outcome("La pulseada te encendió", "El cruce terminó ahí y jugaste con una intensidad distinta: tu rendimiento sube un 20%.", "positive", { reputation: 7, formBoost: .2 }),
+        outcome("El árbitro te mostró la roja", "Reaccionaste a una provocación y terminaste expulsado. Te perdés el próximo partido por suspensión.", "negative", { coachTrust: -10, reputation: -4, formBoost: -.15, suspension: 1 })),
+    ],
+  },
 
+];

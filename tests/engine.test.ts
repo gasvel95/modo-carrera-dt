@@ -280,3 +280,11 @@ test("different seeds can diverge", () => {
 test("one thousand automated seasons do not block", () => {
   for (let seed = 1; seed <= 1000; seed++) assert.equal(autoplay(seed).history.length, 1);
 });
+
+test("bad refereeing event offers speaking out or staying silent with uncertain consequences", () => {
+  const event = EVENTS.find((item) => item.id === "refereeing_scandal");
+  assert.ok(event);
+  assert.equal(event.options.length, 2);
+  assert.deepEqual(event.options.map((item) => item.id), ["criticize_referees", "stay_silent_referees"]);
+  assert.ok(event.options.every((item) => item.outcomes.some((outcome) => outcome.tone === "positive") && item.outcomes.some((outcome) => outcome.tone === "negative")));
+});

@@ -46,6 +46,7 @@ export type PlayerSeason = {
   coachTrust: number;
   fitness: number;
   formBoost?: number;
+  suspendedMatches?: number;
   recentMatches: PlayerMatch[];
   completed: boolean;
 };
@@ -68,7 +69,7 @@ export type PlayerSeasonRecord = {
   outcome: string;
 };
 
-export type PlayerEventEffects = Partial<{ coachTrust: number; fitness: number; reputation: number; overall: number; formBoost: number }>;
+export type PlayerEventEffects = Partial<{ coachTrust: number; fitness: number; reputation: number; overall: number; formBoost: number; suspension: number }>;
 export type PlayerEventOutcome = { title: string; description: string; tone: "positive" | "negative" | "neutral"; effects: PlayerEventEffects };
 export type PlayerEventOption = { id: string; text: string; approach: "bold" | "calm" | "safe"; successChance: number; outcomes: { success: PlayerEventOutcome; failure: PlayerEventOutcome } };
 export type PlayerCareerEvent = { id: string; kicker: string; title: string; description: string; options: PlayerEventOption[] };

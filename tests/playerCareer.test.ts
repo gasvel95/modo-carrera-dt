@@ -65,7 +65,7 @@ test("retirement can be voluntary or triggered by age", () => {
 test("folklore events always offer meaningful probabilistic choices", () => {
   assert.ok(PLAYER_EVENTS.length >= 10);
   for (const event of PLAYER_EVENTS) {
-    assert.equal(event.options.length, 3, event.id);
+    assert.ok(event.options.length >= 2, event.id);
     for (const choice of event.options) {
       assert.ok(choice.successChance > 0 && choice.successChance < 1);
       assert.ok(Object.keys(choice.outcomes.success.effects).length > 0);
@@ -98,4 +98,14 @@ test("played fixtures retain the opponent crest", () => {
   state = playPlayerBlock(state);
   assert.ok(state.season?.recentMatches.length);
   assert.ok(state.season?.recentMatches.every((match) => match.opponentCrestId));
+});
+
+test("rival provocation can boost form by twenty percent or cause a real suspension", () => {
+  const event = PLAYER_EVENTS.find((item) => item.id === "rival_provocation");
+  assert.ok(event);
+  assert.equal(event.options.length, 2);
+  const outcomes = event.options.flatMap((item) => [item.outcomes.success, item.outcomes.failure]);
+  assert.ok(outcomes.some((item) => item.effects.formBoost === .2));
+  assert.ok(outcomes.some((item) => item.effects.suspension === 1));
+  assert.match(outcomes.find((item) => item.effects.suspension)?.description ?? "", /expulsado|suspensi.n/i);
 });

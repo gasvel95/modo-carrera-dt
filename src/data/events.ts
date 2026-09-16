@@ -202,4 +202,18 @@ export const EVENTS: GameEvent[] = [
   event({ id: "assistant_red_card", category: "cuerpo_tecnico", level: "MEDIUM", kicker: "FÚTBOL ARGENTINO", title: "Tu ayudante fue expulsado antes del partido", description: "Tu ayudante de campo provocó al banco rival, discutió con el cuarto árbitro y terminó retirado por seguridad antes del inicio. La escena es viral y la dirigencia quiere una respuesta.", minWeek: 4, condition: "any", options: [
     option("fine_assistant", "Sancionarlo públicamente", "safe", { boardTrust: 8, pressure: -3 }, { harmony: -7 }), option("back_assistant", "Respaldarlo y bajar el tono", "calm", { morale: 8, harmony: 6 }, { boardTrust: -6 }), option("remove_assistant", "Dejarlo fuera del banco varias fechas", "bold", { respect: 7, boardTrust: 5 }, { harmony: -11, performance: -.02 }),
   ] }),
+  event({ id: "refereeing_scandal", category: "institucional", level: "MAJOR", kicker: "ARBITRAJE EN EL OJO DE LA TORMENTA", title: "Tres fallos polémicos perjudicaron al equipo", description: "Un penal dudoso, un gol anulado y una expulsión discutible dejaron al club al borde del escándalo. Los periodistas esperan tu palabra sobre la organización arbitral.", minWeek: 6, condition: "any", options: [
+    {
+      id: "criticize_referees", text: "Hablar contra la organización de los árbitros", approach: "bold", outcomes: [
+        { id: "criticism_heard", title: "El reclamo obliga a dar explicaciones", description: "La conferencia instala el tema, la dirigencia te respalda y el plantel siente que defendiste al club.", baseProbability: .48, tone: "positive", effects: { respect: 12, morale: 8, fanApproval: 10, performance: .025 } },
+        { id: "criticism_sanctioned", title: "La protesta termina en sanción", description: "La organización arbitral eleva un informe, recibís una fecha de suspensión y la presión sobre el equipo aumenta.", baseProbability: .52, tone: "negative", effects: { pressure: 14, boardTrust: -8, performance: -.04 } },
+      ],
+    },
+    {
+      id: "stay_silent_referees", text: "Quedarte callado y concentrarte en el próximo partido", approach: "safe", outcomes: [
+        { id: "silence_focus", title: "El silencio fortalece al grupo", description: "Puertas adentro descargan la bronca y la transforman en una semana de trabajo intensa.", baseProbability: .64, tone: "positive", effects: { harmony: 8, performance: .04, pressure: -4 } },
+        { id: "silence_weakness", title: "El silencio se interpreta como debilidad", description: "La hinchada y varios dirigentes sienten que nadie defendió al club después de los fallos.", baseProbability: .36, tone: "negative", effects: { fanApproval: -10, respect: -7, pressure: 7 } },
+      ],
+    },
+  ] }),
 ];

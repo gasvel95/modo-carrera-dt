@@ -53,3 +53,22 @@ test("serves crawlable AI discovery endpoints", async () => {
   const sitemapXml = await sitemap.text();
   assert.match(sitemapXml, /https:\/\/modocarrera\.com\.ar\/acerca/);
 });
+
+test("serves original guides, club histories and institutional pages", async () => {
+  const guides = await render("/guias");
+  assert.equal(guides.status, 200);
+  assert.match(await guides.text(), /Del primer contrato a la gloria/);
+
+  const clubs = await render("/clubes");
+  assert.equal(clubs.status, 200);
+  const clubsHtml = await clubs.text();
+  assert.match(clubsHtml, /INSTITUCIONES CON HISTORIA/);
+  assert.match(clubsHtml, /River Plate/);
+  assert.match(clubsHtml, /Primera D/);
+
+  for (const path of ["/privacidad", "/terminos", "/contacto"]) {
+    const response = await render(path);
+    assert.equal(response.status, 200, path);
+    assert.match(await response.text(), /MODO CARRERA/);
+  }
+});
