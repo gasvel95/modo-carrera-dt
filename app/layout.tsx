@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   },
   description: "Juego de director técnico y carrera de jugador argentino gratis y online. Empezá en el ascenso y construí tu historia hasta Primera.",
   applicationName: "Modo Carrera DT",
-  authors: [{ name: "Oddloop" }],
+  authors: [{ name: "Oddloop" }, { name: "Gastón Veliez" }],
   creator: "Oddloop",
   publisher: "Oddloop",
   category: "games",
@@ -78,7 +78,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <nav className="site-nav" aria-label="Navegación principal">
           <a className="site-nav-brand" href="/">MODO CARRERA <b>DT</b></a>
           <div>
-            <a href="/">JUGAR</a><a href="/guias">GUÍAS</a><a href="/clubes">CLUBES</a><a href="/acerca">ACERCA</a>
+            <a href="/">JUGAR</a><a href="/guias">GUÍAS</a><a href="/articulos">ARTÍCULOS</a><a href="/clubes">CLUBES</a><a href="/acerca">ACERCA</a>
           </div>
         </nav>
         {children}

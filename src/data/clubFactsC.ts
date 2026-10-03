@@ -1,0 +1,630 @@
+// Datos verificados contra fuentes públicas (Wikipedia en español e inglés, notas periodísticas) en octubre de 2026.
+// Se evitan los datos que cambian cada temporada, como la categoría actual o los planteles.
+import type { ClubFacts } from "./clubFacts.ts";
+
+const muniz: ClubFacts = {
+  founded: "9 de julio de 1932",
+  place: "Muñiz, partido de San Miguel (Buenos Aires)",
+  nicknames: ["Rayo Rojo"],
+  highlights: [
+    "Su nombre completo es Club Social, Cultural y Deportivo Muñiz.",
+    "Es uno de los clubes históricos de la zona norte del Gran Buenos Aires.",
+  ],
+  extended: [
+    "El Club Social, Cultural y Deportivo Muñiz fue fundado el 9 de julio de 1932 en la localidad de Muñiz, partido de San Miguel. Se lo conoce como el Rayo Rojo.",
+    "Es un club de barrio de las categorías más bajas del fútbol afiliado directamente a la AFA, con una vida social que se sostiene con el aporte de sus socios y vecinos.",
+  ],
+};
+
+export const CLUB_FACTS_C: Record<string, ClubFacts> = {
+  germinal: {
+    founded: "3 de septiembre de 1922",
+    place: "Rawson, Chubut",
+    nicknames: ["El Verde", "Albiverde"],
+    colors: "Camiseta verde y blanca a rayas verticales, pantalón negro y medias grises",
+    stadium: "",
+    highlights: [
+      "Fue fundado por 16 personas tras una disputa entre socios de La Sportiva de Rawson.",
+      "Es el gran símbolo deportivo de la capital de Chubut.",
+    ],
+    extended: [
+      "Germinal fue fundado el 3 de septiembre de 1922 por dieciséis personas que se separaron de La Sportiva de Rawson después de una disputa entre socios. De esa división nació el club albiverde, que con los años se convirtió en el principal símbolo deportivo de Rawson.",
+      "Su camiseta de rayas verticales verdes y blancas, con pantalón negro y medias grises, está profundamente arraigada en la identidad de la ciudad. Por eso se lo conoce como El Verde.",
+    ],
+  },
+  sol_de_mayo: {
+    founded: "2 de agosto de 1920",
+    place: "Viedma, Río Negro",
+    nicknames: ["Albiceleste"],
+    colors: "Celeste y blanco",
+    stadium: "Estadio Albiceleste (inaugurado en 1939)",
+    highlights: [
+      "Fue fundado por ex alumnos y un ex sacerdote del colegio San Francisco de Sales.",
+      "Se hizo muy popular al eliminar a Rosario Central en la Copa Argentina.",
+      "Mantiene siete deportes además del fútbol.",
+    ],
+    extended: [
+      "Sol de Mayo fue fundado el 2 de agosto de 1920 por un grupo de ex alumnos y un ex sacerdote del colegio San Francisco de Sales, en la ciudad de Viedma. Sus colores son el celeste y el blanco, que aparecen en el escudo y en la camiseta.",
+      "Su estadio, el Albiceleste, abrió en 1939. El club tiene siete equipos deportivos y su fútbol es la actividad principal.",
+      "Ganó notoriedad nacional cuando eliminó a Rosario Central en la Copa Argentina, una noche que muchos viedmenses todavía recuerdan.",
+    ],
+  },
+  villa_mitre: {
+    founded: "14 de agosto de 1924",
+    place: "Bahía Blanca (Buenos Aires)",
+    nicknames: ["Villeros", "Tricolor"],
+    colors: "Rojo, blanco y negro",
+    stadium: "El Fortín",
+    highlights: [
+      "Su nombre homenajea a Bartolomé Mitre, presidente de la Nación entre 1862 y 1868.",
+      "Tiene origen en un grupo de aficionados que en 1922 fundó el club Marcelo T. de Alvear.",
+    ],
+    extended: [
+      "Villa Mitre fue fundado el 14 de agosto de 1924 en Bahía Blanca. Sus raíces están en un grupo de aficionados que en 1922 había formado el club Marcelo T. de Alvear y que jugaba con una camiseta roja, blanca y negra, parecida a la de Chacarita Juniors.",
+      "El nombre actual rinde homenaje a Bartolomé Mitre, presidente de la Nación entre 1862 y 1868. Los colores rojo, blanco y negro se mantuvieron como tradición.",
+      "Su estadio, El Fortín, es escenario de clásicos bahienses y de torneos regionales y federales.",
+    ],
+  },
+  cipolletti: {
+    founded: "26 de octubre de 1926",
+    place: "Cipolletti, Río Negro",
+    nicknames: ["Albinegro", "Capataz de la Patagonia"],
+    colors: "Blanco y negro",
+    stadium: "La Visera de Cemento (calle Mengelle 210; unos 15.000 espectadores)",
+    highlights: [
+      "Participó de seis Campeonatos Nacionales de Primera División, de donde viene su apodo de Capataz de la Patagonia.",
+      "Su estadio es el de mayor capacidad de la provincia de Río Negro.",
+    ],
+    extended: [
+      "Cipolletti fue fundado el 26 de octubre de 1926 en la ciudad que lleva su nombre, en el Alto Valle de Río Negro. Se identifica con el blanco y el negro y es conocido como el Albinegro.",
+      "Participó de seis Campeonatos Nacionales de Primera División, algo muy poco habitual para un club patagónico. De allí nació el apodo Capataz de la Patagonia.",
+      "Su estadio, La Visera de Cemento, está en la misma sede social, en la calle Mengelle al 210, y con capacidad para unas 15.000 personas es el más grande de toda la provincia.",
+    ],
+  },
+  santamarina: {
+    founded: "20 de diciembre de 1913",
+    place: "Tandil (Buenos Aires)",
+    nicknames: ["Aurinegro", "Santa"],
+    colors: "Amarillo y negro",
+    stadium: "Estadio Municipal General San Martín (unos 8.700 espectadores)",
+    highlights: [
+      "Nació con el nombre de Club Fuerte Independencia.",
+      "Lleva el nombre del empresario Ramón Santamarina (1827-1904).",
+      "En 1985 fue el único club de su liga que llegó a jugar en Primera División.",
+    ],
+    extended: [
+      "Club y Biblioteca Ramón Santamarina fue fundado el 20 de diciembre de 1913 con el nombre de Club Fuerte Independencia, que cambió después por el de Ramón Santamarina, empresario y filántropo tandilense nacido en 1827 y fallecido en 1904.",
+      "Se lo conoce como el Aurinegro y su estadio, el Municipal General San Martín, tiene capacidad para unas 8.700 personas.",
+      "Su gran momento llegó en 1985, cuando jugó en Primera División y se convirtió en el único club de su liga en lograrlo.",
+    ],
+  },
+  rincon: {
+    founded: "9 de septiembre de 2012",
+    place: "Rincón de los Sauces, Neuquén",
+    nicknames: ["El León Patagónico"],
+    stadium: "Elías Moisés Gómez (césped sintético)",
+    highlights: [
+      "Es uno de los clubes más jóvenes de la categoría.",
+      "Debutó en el Federal A en 2024.",
+      "Su estadio es el único de la categoría con césped sintético.",
+    ],
+    extended: [
+      "Club Deportivo Rincón fue fundado el 9 de septiembre de 2012 en Rincón de los Sauces, en el norte de la provincia de Neuquén. Es una de las instituciones deportivas más jóvenes de la región y su apodo, El León Patagónico, resume un estilo de juego aguerrido.",
+      "Su estadio, el Elías Moisés Gómez, es el único de la categoría con césped sintético. En 2024 debutó en el Torneo Federal A, un paso importante en su corta historia.",
+    ],
+  },
+  bolivar: {
+    founded: "23 de octubre de 2002",
+    place: "Bolívar (Buenos Aires)",
+    nicknames: ["Águilas Celestes"],
+    stadium: "Municipal Eva Perón (inaugurado el 12 de octubre de 1947)",
+    highlights: [
+      "Nació por iniciativa del conductor Marcelo Tinelli, oriundo de la ciudad.",
+      "Se hizo conocido en el voleibol profesional antes de apostar por el fútbol.",
+      "Llegó al Federal A en 2021.",
+    ],
+    extended: [
+      "Ciudad de Bolívar fue fundado el 23 de octubre de 2002 por iniciativa del conductor y empresario Marcelo Tinelli, nacido en la ciudad. En sus inicios se identificó con el voleibol profesional, deporte en el que logró reconocimiento continental.",
+      "Tras la disolución del equipo de voleibol en 2020, el club decidió reinventarse y apostó por el fútbol. Ingresó al Torneo Federal A en 2021 y desde entonces creció de manera sostenida.",
+      "Su estadio, el Municipal Eva Perón, fue inaugurado en 1947. Por su corta historia futbolística es un caso especial dentro del interior bonaerense.",
+    ],
+  },
+  monte_maiz: {
+    founded: "18 de noviembre de 1925",
+    place: "Monte Maíz, Córdoba",
+    nicknames: ["El Albiceleste"],
+    colors: "Blanco y celeste",
+    stadium: "Modesto Marrone (construido en 1986)",
+    highlights: [
+      "A mediados de la década de 2010 las inundaciones casi lo hacen desaparecer.",
+      "Accedió al Torneo Federal en 2022.",
+      "Representa a una localidad de unos 7.300 habitantes.",
+    ],
+    extended: [
+      "Club Deportivo Argentino de Monte Maíz fue fundado el 18 de noviembre de 1925 en una pequeña localidad del sudeste de Córdoba de unos 7.300 habitantes. Sus colores son el blanco y el celeste.",
+      "En 2014 las inundaciones que afectaron a la zona casi lo hacen desaparecer, pero el club se recuperó con el apoyo de la comunidad. En 2022 accedió al Torneo Federal.",
+      "Su estadio, el Modesto Marrone, se construyó en 1986. Su historia muestra cómo un club de pueblo puede llegar a competir en el fútbol nacional.",
+    ],
+  },
+  sportivo_b: {
+    founded: "15 de abril de 1914",
+    place: "San Francisco, Córdoba",
+    nicknames: ["La Verde"],
+    stadium: "Oscar C. Boero (unos 9.200 espectadores)",
+    highlights: [
+      "Fue fundado por un grupo de jóvenes como club social.",
+      "Su nombre homenajea a Manuel Belgrano, creador de la bandera.",
+      "En 1937 debió dejar su cancha original y se mudó al barrio Alberione.",
+    ],
+    extended: [
+      "Sportivo Belgrano fue fundado el 15 de abril de 1914 por un grupo de jóvenes de San Francisco, en el este de Córdoba, que eligieron el nombre en homenaje a Manuel Belgrano, creador de la bandera argentina.",
+      "Como los rivales usaban camisetas celestes y blancas, se votó entre el rojo y el verde y ganó el rojo, aunque el club terminó identificado con el verde. Se lo conoce como La Verde.",
+      "Tras tener que abandonar su cancha original en 1937, instaló su sede en el barrio Alberione, donde está hoy su estadio, el Oscar C. Boero.",
+    ],
+  },
+  juventud_sl: {
+    founded: "8 de noviembre de 1920",
+    place: "San Luis",
+    nicknames: ["Juve"],
+    stadium: "Mario Sebastián Diez (unos 10.000 espectadores)",
+    highlights: [
+      "Su nombre completo es Club Atlético Juventud Unida Universitario.",
+      "Es uno de los clubes más importantes de San Luis.",
+    ],
+    extended: [
+      "Club Atlético Juventud Unida Universitario fue fundado el 8 de noviembre de 1920 en la ciudad de San Luis. Se lo conoce como La Juve.",
+      "Su estadio, el Mario Sebastián Diez, tiene capacidad para unos 10.000 espectadores y es uno de los más importantes de la provincia. Ha competido en torneos nacionales del interior.",
+    ],
+  },
+  central_norte: {
+    founded: "9 de marzo de 1921",
+    place: "Salta",
+    nicknames: ["Cuervo", "Azabache", "Ferroviario"],
+    stadium: "Padre Ernesto Martearena (unos 20.400 espectadores)",
+    highlights: [
+      "Su nombre viene del Ferrocarril Central Norte, cuya línea cruzaba la provincia.",
+      "Logró un ascenso histórico al derrotar a Sarmiento de La Banda en una final del Federal A.",
+      "La última vez que había jugado en segunda división fue en la temporada 1986/87.",
+    ],
+    extended: [
+      "Central Norte fue fundado en Salta el 9 de marzo de 1921 y tomó su nombre del Ferrocarril Central Norte, la empresa estatal cuya línea atravesaba la provincia. De ese origen vienen los apodos Ferroviario, Cuervo y Azabache.",
+      "Comparte con Juventud Antoniana el estadio Padre Ernesto Martearena, con capacidad para unos 20.400 espectadores.",
+      "Su historia reciente incluyó un ascenso histórico: derrotó a Sarmiento de La Banda en la final del Federal A. La última vez que había jugado en segunda división fue en 1986/87.",
+    ],
+  },
+  sarmiento_r: {
+    founded: "24 de septiembre de 1910",
+    place: "Resistencia, Chaco",
+    nicknames: ["El Aurirrojo", "El Decano", "El Rojo de Villa Alta"],
+    colors: "Amarillo y rojo",
+    stadium: "Centenario (inaugurado el 24 de mayo de 2011)",
+    highlights: [
+      "Jugó una sola temporada en la máxima categoría, el Torneo Nacional de 1977, y terminó sexto en el grupo C.",
+      "Es el club con más títulos de la liga de su provincia: 35, el primero en 1925.",
+    ],
+    extended: [
+      "Sarmiento de Resistencia fue fundado el 24 de septiembre de 1910 y es uno de los clubes más antiguos y laureados del Chaco. Sus apodos, Aurirrojo, Decano y Rojo de Villa Alta, hablan de su historia y su barrio.",
+      "Jugó una única temporada en la máxima categoría, el Torneo Nacional de 1977, en el que terminó sexto en el grupo C con victorias y empates ante equipos de renombre.",
+      "Tiene la mayor cantidad de títulos de la Liga Chaqueña, 35, y fue el primero en consagrarse, en 1925. Su estadio, el Centenario, se inauguró en 2011.",
+    ],
+  },
+  boca_unidos: {
+    founded: "27 de julio de 1927",
+    place: "Corrientes",
+    nicknames: ["Aurirrojo", "El Club de la Ribera"],
+    stadium: "Leoncio Benítez (unos 17.500 espectadores)",
+    highlights: [
+      "Está históricamente ligado al barrio Cambá Cuá.",
+      "Entre 1967 y 1985 compitió siempre en torneos regionales por un lugar en Primera.",
+      "En 2009 ganó un lugar en la Primera B Nacional.",
+    ],
+    extended: [
+      "Club Atlético Boca Unidos fue fundado el 27 de julio de 1927 en la ciudad de Corrientes y está históricamente ligado al barrio Cambá Cuá. Se lo conoce como Aurirrojo y como El Club de la Ribera.",
+      "Hace unas décadas fue el equipo más popular de la ciudad y entre 1967 y 1985 compitió de manera constante en los torneos regionales, siempre buscando un lugar en el fútbol grande.",
+      "En 2009 ganó una plaza en la Primera B Nacional. Su estadio, el Leoncio Benítez, tiene capacidad para unos 17.500 espectadores.",
+    ],
+  },
+  crucero: {
+    founded: "1989",
+    place: "Garupá, Misiones",
+    nicknames: ["Colectivero"],
+    stadium: "Andrés Guacurarí (inaugurado en 2003)",
+    highlights: [
+      "Fue fundado por la familia Koropeski, dueña de la empresa de colectivos Crucero del Norte.",
+      "Debutó en la Liga Posadeña de Fútbol y llegó al Torneo Argentino C en 2005.",
+      "Llegó a Primera División por primera vez unos 25 años después de su fundación.",
+    ],
+    extended: [
+      "Club Mutual Crucero del Norte fue fundado en 1989 por la familia Koropeski, propietaria de la empresa de colectivos que le dio nombre. De allí viene el apodo Colectivero.",
+      "En sus primeros años jugó de local en el estadio Bartolomé Mitre de Posadas hasta que, en 2003, inauguró el suyo propio en Garupá, el Andrés Guacurarí. Debutó en la Liga Posadeña y en 2005 accedió al Torneo Argentino C.",
+      "Su crecimiento fue muy rápido: alcanzó la Primera División por primera vez unos 25 años después de su fundación.",
+    ],
+  },
+  san_martin_f: {
+    founded: "",
+    place: "Ciudad de Formosa",
+    nicknames: [],
+    stadium: "17 de Octubre",
+    highlights: [
+      "Su nombre completo es Club Sportivo General San Martín.",
+      "Es uno de los equipos más importantes del nordeste argentino.",
+    ],
+    extended: [
+      "Club Sportivo General San Martín, de la ciudad de Formosa, es uno de los equipos más importantes del nordeste argentino. Juega de local en el estadio 17 de Octubre.",
+      "Participa de las competencias del Consejo Federal y representa a la provincia en torneos nacionales.",
+    ],
+  },
+  antoniana: {
+    founded: "12 de enero de 1916",
+    place: "Salta",
+    nicknames: ["Santo"],
+    colors: "Blanco y azul",
+    stadium: "Padre Ernesto Martearena (unos 20.400 espectadores)",
+    highlights: [
+      "Jugó en Primera División en 1971, 1973, 1975, 1978, 1983 y 1985.",
+      "Su nombre completo es Centro Juventud Antoniana.",
+    ],
+    extended: [
+      "El Centro Juventud Antoniana fue fundado el 12 de enero de 1916 en la ciudad de Salta. Se lo conoce como El Santo y sus colores son el blanco y el azul.",
+      "Es uno de los clubes populares del noroeste: pasó muchos años en la segunda categoría y jugó en Primera División en seis ocasiones, en 1971, 1973, 1975, 1978, 1983 y 1985.",
+      "Juega en el estadio Padre Ernesto Martearena, que comparte con Central Norte.",
+    ],
+  },
+  lamadrid: {
+    founded: "11 de mayo de 1950",
+    place: "Villa Devoto, Ciudad de Buenos Aires",
+    nicknames: ["Carcelero"],
+    stadium: "Enrique Sexto (unos 3.000 espectadores)",
+    rival: "Comunicaciones, en el Comu-Lama",
+    highlights: [
+      "Se fundó en un terreno que había sido basural, entre las calles Pedro Lozano, Bermúdez, Tinogasta y Desaguadero.",
+      "Su apodo viene de que está separado de la cárcel de Devoto por una sola calle.",
+      "En 1956 obtuvo la personería jurídica y se afilió a la AFA en la categoría Aficionados, hoy Primera D.",
+    ],
+    extended: [
+      "General Lamadrid fue fundado el 11 de mayo de 1950 por un grupo de jóvenes deportistas que formó una comisión directiva con Marcelino Piñero como primer presidente. Limpiaron un terreno de Villa Devoto que había sido basural y construyeron una cancha de fútbol, una de bochas, una secretaría, vestuarios y un buffet.",
+      "Se lo conoce como Carcelero porque su cancha está separada de la cárcel de Devoto por una sola calle. En 1956 obtuvo la personería jurídica y se afilió a la AFA, donde comenzó a competir en la categoría Aficionados, que hoy equivale a la Primera D.",
+      "Su rivalidad más importante es con Comunicaciones, en el partido que se conoce como Comu-Lama.",
+    ],
+  },
+  berazategui: {
+    founded: "18 de septiembre de 1975",
+    place: "Berazategui (Buenos Aires)",
+    nicknames: ["Bera", "Naranja", "Naranja Mecánica", "Capo del Sur"],
+    colors: "Naranja, inspirado en la selección de los Países Bajos del Mundial 1974",
+    stadium: "Norman Lee (unos 10.000 espectadores)",
+    highlights: [
+      "Se fundó en una reunión en la casa de Alfredo San Miguel; su primer presidente fue Giberto Martín.",
+      "Se afilió a la AFA en marzo de 1976 y debutó en Primera D.",
+      "Ascendió a Primera C ese mismo año tras quedar segundo en su primera temporada oficial.",
+    ],
+    extended: [
+      "La Asociación Deportiva Berazategui fue fundada el 18 de septiembre de 1975 durante una reunión en la casa de Alfredo San Miguel. Su primer presidente fue Giberto Martín.",
+      "El color naranja que lo identifica se inspiró en la selección de los Países Bajos, que fue la sensación del Mundial de 1974. De allí vienen los apodos Naranja y Naranja Mecánica.",
+      "En marzo de 1976 se afilió a la AFA y debutó en Primera D. En su primera temporada oficial terminó segundo y ascendió a Primera C. Su estadio, el Norman Lee, tiene capacidad para unas 10.000 personas.",
+    ],
+  },
+  lujan: {
+    founded: "1 de abril de 1936",
+    place: "Luján (Buenos Aires)",
+    nicknames: ["Lujanero"],
+    stadium: "Campo Municipal de Deportes Luján (unos 2.500 espectadores)",
+    highlights: [
+      "Nació bajo un gran árbol, en la esquina de las calles 25 de Mayo y Rivadavia.",
+      "Se afilió a la AFA en 1961 y empezó en la cuarta división, hoy Primera D.",
+      "Ascendió a Primera C en 1964 tras vencer 5 a 1 a Estudiantes de Buenos Aires.",
+    ],
+    extended: [
+      "Club Luján fue fundado el 1 de abril de 1936 en la esquina de las calles 25 de Mayo y Rivadavia, bajo un inmenso árbol donde un grupo de jóvenes soñó con crear un club. Entre los fundadores figuran Mario Gervais, Juan Carlos Aguas, Roberto Ferroni y otros, y su primer presidente fue Ricardo Platón.",
+      "En 1961 se afilió a la AFA y comenzó en la cuarta división, hoy Primera D. En 1964 ascendió a la Primera C tras vencer 5 a 1 a Estudiantes de Buenos Aires. En 1986 logró subir a la tercera división al derrotar a Muñiz.",
+    ],
+  },
+  argentino_r: {
+    founded: "15 de enero de 1912",
+    place: "Rosario (Santa Fe)",
+    nicknames: ["Salaíto"],
+    stadium: "José Martín Olaeta (unos 6.800 espectadores)",
+    highlights: [
+      "Se llamó Club Embarcadero y después Nacional.",
+      "En 1946 alcanzó su mejor puesto: segundo en la Primera B.",
+      "Nunca jugó en la máxima categoría del fútbol argentino.",
+    ],
+    extended: [
+      "Club Atlético Argentino fue fundado el 15 de enero de 1912 en Rosario y fue conocido antes como Club Embarcadero y luego como Nacional. Se lo conoce popularmente como Salaíto.",
+      "El año más exitoso de su historia fue 1946, cuando terminó segundo en el torneo de Primera B. Nunca jugó en la máxima categoría del fútbol argentino.",
+      "Su estadio, el José Martín Olaeta, tiene capacidad para unos 6.800 espectadores.",
+    ],
+  },
+  central_c: {
+    founded: "20 de octubre de 1906",
+    place: "Rosario (Santa Fe)",
+    nicknames: ["Charrúa"],
+    stadium: "Gabino Sosa (abrió en 1907)",
+    highlights: [
+      "Fue fundado por un grupo de trabajadores ferroviarios.",
+      "Su estadio lleva desde noviembre de 1969 el nombre de Gabino Sosa, su máxima figura histórica.",
+    ],
+    extended: [
+      "Central Córdoba de Rosario fue fundado el 20 de octubre de 1906 por un grupo de trabajadores ferroviarios y se lo conoce como Charrúa. Su estadio abrió en 1907.",
+      "En noviembre de 1969 la cancha recibió el nombre de Gabino Sosa (1899-1971), futbolista que pasó 24 años en el club y es considerado el primer gran jugador de Rosario, con presencia en la selección argentina.",
+    ],
+  },
+  espanol: {
+    founded: "12 de octubre de 1956",
+    place: "Parque Avellaneda, Ciudad de Buenos Aires",
+    nicknames: ["Gallegos"],
+    colors: "Rojo, celeste y blanco",
+    stadium: "Nueva España (inaugurado el 11 de febrero de 1981)",
+    highlights: [
+      "Fue fundado por un grupo de españoles residentes en la Argentina el Día de la Hispanidad.",
+      "Tuvo un ciclo prolongado en Primera División en las décadas de 1980 y 1990.",
+      "Sus colores combinan el rojo de la selección española con el celeste y blanco argentino.",
+    ],
+    extended: [
+      "Deportivo Español fue fundado el 12 de octubre de 1956 por un grupo de españoles que vivían en Buenos Aires, con el nombre de Club Deportivo Español de Buenos Aires. La fecha, Día de la Hispanidad, se eligió a propósito.",
+      "Su camiseta combina el rojo de la selección española con el celeste y blanco de la Argentina. Se lo conoce como Gallegos y su sede está en Parque Avellaneda.",
+      "Tuvo un período muy largo en Primera División, primero a fines de la década de 1960 y luego a partir de 1984, cuando incluso llegó a competir internacionalmente. Su estadio, el Nueva España, fue inaugurado en 1981.",
+    ],
+  },
+  barracas: {
+    founded: "30 de octubre de 1913",
+    place: "Barracas, Ciudad de Buenos Aires",
+    nicknames: [],
+    colors: "Rojo y amarillo, elegidos mediante un partido de fútbol",
+    stadium: "",
+    highlights: [
+      "Nació como club de remo.",
+      "Ascendió a Primera División en 1916.",
+      "Su estadio, inaugurado en 1920, llegó a albergar 37.000 espectadores y fue demolido en 1937.",
+    ],
+    extended: [
+      "Sportivo Barracas fue fundado el 30 de octubre de 1913 como club de remo, aunque con los años se hizo más conocido por el fútbol. Sus colores, el rojo y el amarillo, se decidieron mediante un partido.",
+      "En 1916 ascendió a la Primera División y en 1919 comenzó a construir su propio estadio, que abrió el 25 de mayo de 1920 y llegó a tener capacidad para 37.000 espectadores. Su primer partido oficial fue la final de la Copa de Competencia de 1919, en la que Boca Juniors venció 2 a 0 al Nacional de Uruguay.",
+      "El estadio fue demolido en 1937, pero el club siguió en el barrio de Barracas y conserva esa historia como parte de su identidad.",
+    ],
+  },
+  claypole: {
+    founded: "1 de octubre de 1923",
+    place: "Claypole, partido de Almirante Brown (Buenos Aires)",
+    nicknames: ["Tambero", "El Tambo"],
+    colors: "Camiseta inspirada en la del Sunderland inglés",
+    stadium: "Rodolfo Capocasa (unos 1.300 espectadores)",
+    highlights: [
+      "Su camiseta se inspiró en el Sunderland, que había visitado Buenos Aires.",
+      "Se afilió a la AFA en 1978 y empezó en Primera D.",
+      "Ascendió a Primera C con el torneo Apertura de 1986.",
+    ],
+    extended: [
+      "Club Atlético Claypole fue fundado el 1 de octubre de 1923. Su uniforme se inspiró en el del equipo inglés Sunderland, que había visitado Buenos Aires por aquellos años. Se lo conoce como El Tambero.",
+      "Se afilió a la AFA en 1978 y comenzó en Primera D. Ascendió a Primera C con el torneo Apertura de 1986. Su estadio, el Rodolfo Capocasa, tiene capacidad para unos 1.300 espectadores.",
+    ],
+  },
+  real_pilar: {
+    founded: "17 de febrero de 2017",
+    place: "Pilar (Buenos Aires)",
+    nicknames: ["Monarca"],
+    stadium: "Municipal Carlos Barraza (unos 10.000 espectadores)",
+    highlights: [
+      "Es uno de los clubes más jóvenes del fútbol argentino.",
+      "Fue fundado por el empresario César Mansilla y otros socios.",
+      "En 2019 eliminó a Vélez en la Copa Argentina, algo que nunca había logrado un equipo de la quinta categoría.",
+    ],
+    extended: [
+      "Real Pilar Fútbol Club fue fundado el 17 de febrero de 2017 por iniciativa de César Mansilla, empresario del rubro de consultoría de medios, política y marketing, junto con otros socios. Se lo conoce como Monarca.",
+      "Su momento más recordado llegó en la Copa Argentina de 2019, cuando eliminó a Vélez Sarsfield: ningún equipo de la quinta categoría había superado antes a uno de Primera.",
+      "Juega de local en el estadio Municipal Carlos Barraza, con capacidad para unos 10.000 espectadores.",
+    ],
+  },
+  jj_urquiza: {
+    founded: "8 de junio de 1936",
+    place: "Loma Hermosa, partido de General San Martín (Buenos Aires)",
+    nicknames: ["Celeste", "Jota Jota"],
+    stadium: "Ramón Roque Martín (inaugurado en septiembre de 1994)",
+    rival: "UAI Urquiza",
+    highlights: [
+      "Nació de la fusión de tres clubes.",
+      "Su nombre completo es Asociación Social y Deportiva San Gennaro Justo José de Urquiza.",
+      "Homenajea al general Justo José de Urquiza, presidente de la Confederación entre 1854 y 1860.",
+    ],
+    extended: [
+      "J. J. Urquiza fue fundado el 8 de junio de 1936 como resultado de la fusión de tres clubes de Loma Hermosa. Su nombre completo es Asociación Social y Deportiva San Gennaro Justo José de Urquiza.",
+      "El nombre homenajea a Justo José de Urquiza, general y presidente de la Confederación Argentina entre 1854 y 1860. Se lo conoce como El Celeste o Jota Jota.",
+      "Su estadio, el Ramón Roque Martín, tiene capacidad para unas 2.500 personas y se inauguró en septiembre de 1994. Su principal rival es UAI Urquiza.",
+    ],
+  },
+  porvenir: {
+    founded: "15 de septiembre de 1915",
+    place: "Gerli, partido de Lanús (Buenos Aires)",
+    nicknames: ["Porve"],
+    stadium: "Gildo Francisco Ghersinich (unos 14.000 espectadores)",
+    highlights: [
+      "Nació como club de lucha grecorromana.",
+      "Debutó en torneos oficiales de fútbol en 1918.",
+      "En 1919 compró el terreno donde construiría su primer estadio.",
+    ],
+    extended: [
+      "El Porvenir fue fundado el 15 de septiembre de 1915 y nació como club de lucha grecorromana. El fútbol llegó poco después: debutó en torneos oficiales en 1918, y jugó de local en el club Sígame Si Puede.",
+      "En 1919 adquirió el terreno donde construiría su primer estadio y ganó un título que le permitió ascender a la división intermedia, el paso previo a la Primera División de la época.",
+      "Su estadio actual, el Gildo Francisco Ghersinich, está en Gerli y tiene capacidad para unos 14.000 espectadores.",
+    ],
+  },
+  muniz,
+  muniz_d: muniz,
+  alem: {
+    founded: "1925",
+    place: "General Rodríguez (Buenos Aires)",
+    nicknames: ["El Lechero"],
+    colors: "Camiseta parecida a la de Boca Juniors",
+    stadium: "Estadio de Leandro N. Alem (unos 4.000 espectadores)",
+    highlights: [
+      "Fue fundado por trabajadores lecheros, de donde viene su apodo.",
+      "Su nombre homenajea a Leandro N. Alem, fundador de la Unión Cívica Radical.",
+      "En el Clausura 2001 de Primera C sumó apenas 1 punto en 17 partidos y descendió.",
+    ],
+    extended: [
+      "Leandro N. Alem fue fundado en 1925 por un grupo de trabajadores lecheros, y por eso se lo conoce como El Lechero. El nombre homenajea a Leandro Nicéforo Alem, fundador y líder de la Unión Cívica Radical y tío y maestro político de Hipólito Yrigoyen.",
+      "Su camiseta es muy parecida a la de Boca Juniors y su estadio, con capacidad para unas 4.000 personas, está en General Rodríguez.",
+      "Una página poco feliz de su historia fue el Clausura 2001 de Primera C, cuando sumó un solo punto en 17 partidos, un récord negativo en un torneo corto, y descendió a Primera D.",
+    ],
+  },
+  yupanqui: {
+    founded: "12 de octubre de 1935",
+    place: "Villa Lugano, Ciudad de Buenos Aires",
+    nicknames: ["Los Traperos", "Los Pochas"],
+    stadium: "",
+    highlights: [
+      "El nombre se eligió buscando palabras inusuales en el diccionario.",
+      "Yupanqui significa en quechua algo así como «la posteridad hablará de ti».",
+      "Pasó 46 años en la Primera D desde su afiliación a la AFA en 1976 antes de ascender a la C.",
+    ],
+    extended: [
+      "Club Social y Deportivo Yupanqui fue fundado el 12 de octubre de 1935 en Villa Lugano. Los fundadores buscaron en el diccionario palabras poco comunes y eligieron Yupanqui, un término quechua que significa «la posteridad hablará de ti».",
+      "Durante mucho tiempo el club no tuvo cancha propia. Más tarde inauguró un pequeño estadio en Ciudad Evita con tribunas mínimas. Es conocido como Los Traperos o Los Pochas.",
+      "Desde su afiliación a la AFA en 1976 compitió siempre en las categorías más bajas sin desafiliarse jamás. Tras 46 años en la Primera D logró ascender a la C.",
+    ],
+  },
+  cambaceres: {
+    founded: "12 de octubre de 1921",
+    place: "Ensenada (Buenos Aires)",
+    nicknames: ["Camba Rojo"],
+    colors: "Rojo, en homenaje a Independiente",
+    stadium: "12 de Octubre",
+    rival: "Villa San Carlos, en el Clásico Ribereño",
+    highlights: [
+      "Su nombre completo es Club Social y Deportivo Defensores de Cambaceres.",
+      "Se afilió a la AFA recién en 1957.",
+    ],
+    extended: [
+      "Defensores de Cambaceres fue fundado el 12 de octubre de 1921 con el nombre de Club Social y Deportivo Defensores de Cambaceres, en Ensenada. Su camiseta roja homenajea a Independiente, uno de los equipos más exitosos del país.",
+      "Recién se afilió a la AFA en 1957. Se lo conoce como Camba Rojo y su gran clásico es el Ribereño, que disputa con Villa San Carlos.",
+    ],
+  },
+  victoriano: {
+    founded: "2 de enero de 1928",
+    place: "Valentín Alsina, partido de Lanús (Buenos Aires)",
+    nicknames: ["Victoriano Celeste", "CAVA"],
+    stadium: "Saturnino Moure, en la isla Cava (unos 1.500 espectadores)",
+    highlights: [
+      "Su nombre es el de un agente inmobiliario de Valentín Alsina.",
+      "Su estadio está en un meandro del Riachuelo conocido como isla Cava.",
+      "En 1998 Florencia Romano fue la primera mujer designada para arbitrar un partido de fútbol masculino profesional, en su cancha.",
+    ],
+    extended: [
+      "Victoriano Arenas fue fundado el 2 de enero de 1928 y toma su nombre de un agente inmobiliario de Valentín Alsina. Se lo conoce por la sigla CAVA.",
+      "Su estadio, el Saturnino Moure, tiene capacidad para unas 1.500 personas y está en un meandro del Riachuelo conocido como isla Cava.",
+      "En 1998 ocurrió allí un hecho histórico: Florencia Romano se convirtió en la primera mujer designada para dirigir un partido de fútbol masculino profesional.",
+    ],
+  },
+  atlas_d: {
+    founded: "17 de agosto de 1951",
+    place: "General Rodríguez (Buenos Aires)",
+    nicknames: ["Marrón"],
+    stadium: "Ricardo Puga (unos 2.500 espectadores)",
+    highlights: [
+      "Lo fundó Ricardo Puga para jugar los campeonatos Evita.",
+      "En 1970 cambió su nombre a Club Atlético Atlas y se mudó de Colegiales a General Rodríguez.",
+      "Fue protagonista del documental Atlas, la otra pasión.",
+    ],
+    extended: [
+      "Club Atlético Atlas fue fundado el 17 de agosto de 1951 por Ricardo Puga para jugar los campeonatos Evita entre los barrios de Chacarita y Villa Crespo. Su cancha estaba al principio en el Bajo de Martínez.",
+      "En 1970 adoptó su nombre actual y se mudó de Colegiales al partido de General Rodríguez, donde construyó su estadio, el Ricardo Puga. Se lo conoce como El Marrón.",
+      "Fue uno de los clubes más humildes del fútbol argentino y su lucha quedó reflejada en el documental Atlas, la otra pasión. Más tarde ascendió a la Primera C tras 49 temporadas en la D.",
+    ],
+  },
+  ballester_d: {
+    founded: "1974",
+    place: "José León Suárez, partido de General San Martín (Buenos Aires)",
+    nicknames: ["Canallas"],
+    colors: "Azul y amarillo",
+    stadium: "Sarratea 10500 (inaugurado en 2022, unos 1.100 espectadores)",
+    highlights: [
+      "Nació en Villa Ballester y después se trasladó a José León Suárez.",
+      "Ganó la Primera D y ascendió a Primera C en 1995.",
+      "Perdió su cancha en 1996/97 y jugó durante 26 años y 400 partidos en 16 estadios ajenos antes de estrenar casa propia en 2022.",
+    ],
+    extended: [
+      "Central Ballester nació en 1974 en Villa Ballester, aunque luego se trasladó a José León Suárez. Sus colores tradicionales son el azul y el amarillo.",
+      "El apodo Canallas se lo ganó durante el ascenso a Primera C de 1995: un robo en la utilería lo obligó a jugar un partido con la camiseta de Rosario Central.",
+      "En 1996/97 perdió su cancha en La Cárcova tras una toma de tierras y durante 26 años deambuló por 16 estadios ajenos, 400 partidos. En 2022 estrenó casa propia en Sarratea al 10500.",
+    ],
+  },
+  centro_espanol_d: {
+    founded: "24 de junio de 1934",
+    place: "Villa Sarmiento, partido de Morón (Buenos Aires)",
+    nicknames: ["Gallegos"],
+    stadium: "",
+    highlights: [
+      "Fue fundado por residentes españoles que querían practicar varios deportes.",
+      "Se afilió a la AFA en 1959 y empezó en la Tercera de Ascenso.",
+      "Tenía cancha propia en Ramos Mejía, expropiada a fines de los años sesenta.",
+    ],
+    extended: [
+      "El Centro Social y Recreativo Español fue fundado el 24 de junio de 1934 por un grupo de residentes españoles que querían practicar varios deportes, entre ellos fútbol, básquet, esgrima y vóleibol.",
+      "Se afilió a la AFA en 1959 y empezó a participar en la Tercera de Ascenso. Tenía estadio propio en Ramos Mejía, pero fue expropiado a fines de los años sesenta y desde entonces alquila canchas. Se lo conoce como Gallegos.",
+    ],
+  },
+  lugano_d: {
+    founded: "18 de noviembre de 1915",
+    place: "Tapiales y Villa Lugano (Buenos Aires)",
+    nicknames: ["Naranja"],
+    stadium: "Estadio Atlético Lugano, detrás de la estación Tapiales (unos 2.000 espectadores)",
+    highlights: [
+      "Lo fundaron trabajadores de la Compañía General de Ferrocarriles en la Provincia de Buenos Aires.",
+      "Se llamó Club Compañía General Belgrano (1915), General Belgrano de Lugano (1953) y Atlético Lugano (1986).",
+      "Ganó el torneo de Primera D 1987/88 y ascendió a Primera C por el Reducido 1997/98.",
+    ],
+    extended: [
+      "Club Atlético Lugano fue fundado el 18 de noviembre de 1915 por trabajadores de la empresa ferroviaria francesa Compañía General de Ferrocarriles en la Provincia de Buenos Aires, entonces propietaria de la línea que hoy es el Ferrocarril Belgrano Sur.",
+      "Su primer nombre fue Club Compañía General Belgrano. En 1953 se llamó Club Atlético General Belgrano de Lugano y en 1986 adoptó el actual, en homenaje al barrio. Se lo conoce como Naranja.",
+      "Su estadio está detrás de la estación Tapiales. Ganó el torneo de Primera D en 1987/88 y ascendió a Primera C por el Reducido 1997/98.",
+    ],
+  },
+  paraguayo_d: {
+    founded: "15 de agosto de 1961",
+    place: "González Catán, partido de La Matanza (Buenos Aires)",
+    nicknames: ["El Guaraní"],
+    stadium: "Estadio de Deportivo Paraguayo (unos 3.000 espectadores)",
+    highlights: [
+      "Lo fundó la comunidad paraguaya de Buenos Aires.",
+      "Su sede se usa para actos culturales y danzas tradicionales paraguayas.",
+    ],
+    extended: [
+      "Club Atlético Deportivo Paraguayo fue fundado el 15 de agosto de 1961 por la comunidad paraguaya de Buenos Aires, en el contexto de la gran llegada de inmigrantes de ese país. Se convirtió en el centro deportivo de la colectividad.",
+      "Su edificio se utiliza con frecuencia para actos culturales, charlas sobre la historia paraguaya y presentaciones de danzas tradicionales. Se lo conoce como El Guaraní y su estadio está en González Catán.",
+    ],
+  },
+  juventud_unida_d: {
+    founded: "6 de septiembre de 1949",
+    place: "San Miguel (Buenos Aires)",
+    nicknames: ["Lobo Rojo"],
+    colors: "Rojo y blanco",
+    stadium: "Ciudad de San Miguel, en Sarmiento y Azcuénaga (inaugurado en 1957, rebautizado en 2014)",
+    highlights: [
+      "Lo fundó un grupo de jóvenes entusiastas reunidos en un bar.",
+      "Se afilió a la AFA en 1957.",
+      "En los años cincuenta sumó básquet, boxeo, vóleibol y bochas.",
+    ],
+    extended: [
+      "Club Deportivo y Social Juventud Unida fue fundado el 6 de septiembre de 1949 por un grupo de jóvenes entusiastas reunidos en un bar de San Miguel. Después de su fundación compitió en distintos torneos de General Sarmiento, donde ganó numerosos títulos.",
+      "En los años cincuenta aumentó la cantidad de socios y sumó secciones de básquet, boxeo, vóleibol y bochas. En 1957 se afilió a la AFA.",
+      "Su estadio fue inaugurado ese año en Sarmiento y Azcuénaga y en 2014 pasó a llamarse Ciudad de San Miguel. Se lo conoce como El Lobo Rojo.",
+    ],
+  },
+  mercedes_d: {
+    founded: "12 de mayo de 1875",
+    place: "Mercedes (Buenos Aires)",
+    nicknames: ["Decano de América", "Blanquinegro"],
+    colors: "Blanco y negro",
+    stadium: "Estadio Municipal de Mercedes (unos 6.000 espectadores)",
+    highlights: [
+      "Es considerado el club más antiguo de la Argentina.",
+      "Nació como Club Social y en 1935 se fusionó con el Club Deportivo.",
+      "Llegó a la Primera D de AFA en 2022.",
+    ],
+    extended: [
+      "Club Atlético Mercedes fue fundado el 12 de mayo de 1875 y es considerado el club más antiguo de la Argentina, de allí el apodo Decano de América. Durante sus primeras seis décadas organizó sobre todo actividades sociales, bajo el nombre de Club Social.",
+      "En 1935 el Club Social se fusionó con el Club Deportivo y dio origen al actual Club Mercedes. Se identifica con el blanco y el negro.",
+      "En 2022 se sumó a la Primera D y pasó a ser afiliado directo de la AFA. Su estadio es el Municipal de Mercedes.",
+    ],
+  },
+};

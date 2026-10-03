@@ -72,3 +72,39 @@ test("serves original guides, club histories and institutional pages", async () 
     assert.match(await response.text(), /MODO CARRERA/);
   }
 });
+
+test("serves the articles section", async () => {
+  const index = await render("/articulos");
+  assert.equal(index.status, 200);
+  assert.match(await index.text(), /pir.mide del f.tbol argentino/i);
+  const article = await render("/articulos/copa-argentina-camino-al-titulo");
+  assert.equal(article.status, 200);
+  assert.match(await article.text(), /Copa Argentina/);
+  const sitemap = await (await render("/sitemap.xml")).text();
+  assert.match(sitemap, /\/articulos\/formaciones-y-tacticas-basicas/);
+});
+
+test("serves club pages and contact email", async () => {
+  const club = await render("/clubes/boca");
+  assert.equal(club.status, 200);
+  assert.match(await club.text(), /Boca Juniors/);
+  assert.match(await (await render("/contacto")).text(), /oddloop2542@gmail\.com/);
+});
+
+test("renders verified club facts", async () => {
+  const html = await (await render("/clubes/almirante")).text();
+  assert.match(html, /1 de julio de 1912/);
+  assert.match(html, /Fragata Presidente Sarmiento/);
+});
+
+test("renders verified Primera B club facts", async () => {
+  const html = await (await render("/clubes/villa_sc")).text();
+  assert.match(html, /25 de abril de 1925/);
+  assert.match(html, /Genacio S.lice/);
+});
+
+test("renders verified lower-division club facts", async () => {
+  const html = await (await render("/clubes/mercedes_d")).text();
+  assert.match(html, /12 de mayo de 1875/);
+  assert.match(html, /Decano de Am.rica/);
+});

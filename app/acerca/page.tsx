@@ -62,7 +62,7 @@ export default function AboutPage() {
       </div>
       <section><h2>FOLCLORE, AZAR Y CONSECUENCIAS</h2><p>Micrófonos calientes, viajes de ascenso, canchas embarradas, cábalas de vestuario, penales en el clásico y promesas de dirigentes aparecen como decisiones narrativas. Cada opción tiene una probabilidad de salir bien o mal y puede cambiar la confianza, el estado físico, la reputación o el rendimiento.</p></section>
       <section className="faq"><p>PREGUNTAS FRECUENTES</p><h2>ANTES DE EMPEZAR</h2>{faq.map(([question, answer]) => <details key={question}><summary>{question}</summary><span>{answer}</span></details>)}</section>
-      <footer><a href="/">EMPEZAR UNA CARRERA →</a><small>Gratis · En español · Sin instalación</small></footer>
+      <footer><a href="/">EMPEZAR UNA CARRERA →</a><small>Gratis · En español · Sin instalación</small><small>Proyecto de Oddloop · Edición: Gastón Veliez · <a href="mailto:oddloop2542@gmail.com">oddloop2542@gmail.com</a></small></footer>
     </article>
   </main>;
 }
