@@ -15,6 +15,13 @@ export function GameModeSelector({ onManager, onPlayer }: { onManager: () => voi
         <i>10</i><small>NUEVO MODO</small><strong>JUGADOR<br />DEL ASCENSO</strong><span>Debutá en Primera D, crecé partido a partido y construí una carrera hasta el retiro.</span><b>JUGAR COMO FUTBOLISTA →</b>
       </button>
     </div>
+    <div className={styles.studioGames}>
+      <p>MÁS JUEGOS DE ODDLOOP</p>
+      <div>
+        <iframe frameBorder="0" src="https://itch.io/embed/5219248?dark=true" width="552" height="167" title="Capsule Corner - Demo version by Oddloop" loading="lazy"><a href="https://oddloop42.itch.io/capsule-corner">Capsule Corner - Demo version by Oddloop</a></iframe>
+        <iframe frameBorder="0" src="https://itch.io/embed/5096764?dark=true" width="552" height="167" title="Pinta! - Argentinian multiplayer card game by Oddloop" loading="lazy"><a href="https://oddloop42.itch.io/pinta">Pinta! - Argentinian multiplayer card game by Oddloop</a></iframe>
+      </div>
+    </div>
     <nav className={styles.publicLinks} aria-label="Información del juego">
       <a href="/acerca">ACERCA DEL JUEGO</a>
       <span>Juego gratuito de fútbol argentino · Dos modos de carrera</span>

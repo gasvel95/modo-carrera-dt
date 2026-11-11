@@ -15,6 +15,10 @@
 .modeCards .playerMode { background: #183f63; border-color: #6ac5df; }
 .modeCards .playerMode i { background: #6ac5df; }
 .modeCards .playerMode small, .modeCards .playerMode b { color: #9ee8f7; }
+.studioGames { margin-top: 40px; }
+.studioGames p { margin: 0 0 14px; color: rgba(255,255,255,.48); font-size: 9px; font-weight: 800; letter-spacing: .08em; }
+.studioGames div { display: flex; flex-wrap: wrap; gap: 18px; }
+.studioGames iframe { max-width: 100%; border: 0; }
 .publicLinks { margin-top: 28px; display: flex; justify-content: space-between; gap: 18px; color: rgba(255,255,255,.48); font-size: 9px; font-weight: 800; letter-spacing: .08em; }
 .publicLinks a { color: #d8ff3e; text-decoration: none; border-bottom: 1px solid currentColor; }
 .publicLinks a:hover { color: #fff; }
